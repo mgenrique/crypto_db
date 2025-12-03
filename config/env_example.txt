@@ -1,0 +1,19 @@
+# Database
+DATABASE_URL=sqlite:///./portfolio.db
+DATABASE_ECHO=false
+
+# API Keys (get from exchanges)
+BINANCE_API_KEY=
+BINANCE_API_SECRET=
+COINBASE_API_KEY=
+KRAKEN_API_KEY=
+
+# Blockchain RPC endpoints (get from Alchemy, Infura, etc)
+ETHEREUM_RPC_URL=
+ARBITRUM_RPC_URL=
+BASE_RPC_URL=
+
+# Server
+APP_ENV=development
+LOG_LEVEL=INFO
+SECRET_KEY=your_secret_key_here_min_32_chars

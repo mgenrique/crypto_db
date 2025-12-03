@@ -1,0 +1,134 @@
+# Crypto Portfolio Tracker v3
+# Configuración de redes blockchain y tokens
+# ============================================================================
+
+# ============================================================================
+# NETWORKS - Redes blockchain soportadas
+# ============================================================================
+networks:
+  ethereum:
+    id: 1
+    name: "Ethereum Mainnet"
+    rpc_url: ${ETHEREUM_RPC_URL}
+    explorer: "https://etherscan.io"
+    chain_id: 1
+    native_token:
+      symbol: ETH
+      name: "Ethereum"
+      decimals: 18
+    contracts:
+      usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+      usdt: "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+      dai: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+
+  arbitrum:
+    id: 42161
+    name: "Arbitrum One"
+    rpc_url: ${ARBITRUM_RPC_URL}
+    explorer: "https://arbiscan.io"
+    chain_id: 42161
+    native_token:
+      symbol: ETH
+      name: "Ethereum (Arbitrum)"
+      decimals: 18
+    contracts:
+      usdc: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5F86"
+      usdt: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
+      dai: "0xDA10009754f1c403dD0d5fFb26FEdc531d0D5b1d"
+
+  base:
+    id: 8453
+    name: "Base"
+    rpc_url: ${BASE_RPC_URL}
+    explorer: "https://basescan.org"
+    chain_id: 8453
+    native_token:
+      symbol: ETH
+      name: "Ethereum (Base)"
+      decimals: 18
+    contracts:
+      usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b1566469c3D"
+      dai: "0x50c5725949A6F68dCaeA132A6A7B6b5b48f8f26f"
+
+# ============================================================================
+# DeFi PROTOCOLS - Protocolos DeFi integrados
+# ============================================================================
+defi_protocols:
+  uniswap_v2:
+    name: "Uniswap V2"
+    networks:
+      - ethereum
+      - arbitrum
+      - base
+    factory: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+    router: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+
+  uniswap_v3:
+    name: "Uniswap V3"
+    networks:
+      - ethereum
+      - arbitrum
+      - base
+    factory: "0x1F98431c8aD98523631AE4a59f267346ea3113F"
+    router: "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+
+  aave:
+    name: "Aave"
+    networks:
+      - ethereum
+      - arbitrum
+    lending_pool: "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9"
+
+# ============================================================================
+# TOKENS - Tokens conocidos
+# ============================================================================
+tokens:
+  ETH:
+    symbol: ETH
+    name: "Ethereum"
+    decimals: 18
+    networks:
+      ethereum: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+
+  USDC:
+    symbol: USDC
+    name: "USD Coin"
+    decimals: 6
+    networks:
+      ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+      arbitrum: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5F86"
+      base: "0x833589fCD6eDb6E08f4c7C32D4f71b1566469c3D"
+
+  USDT:
+    symbol: USDT
+    name: "Tether USD"
+    decimals: 6
+    networks:
+      ethereum: "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+      arbitrum: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
+
+  DAI:
+    symbol: DAI
+    name: "Dai Stablecoin"
+    decimals: 18
+    networks:
+      ethereum: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+      arbitrum: "0xDA10009754f1c403dD0d5fFb26FEdc531d0D5b1d"
+      base: "0x50c5725949A6F68dCaeA132A6A7B6b5b48f8f26f"
+
+  WETH:
+    symbol: WETH
+    name: "Wrapped Ethereum"
+    decimals: 18
+    networks:
+      ethereum: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+      arbitrum: "0x82aF49447d8a07e3bd95bd0d56f313302c4153f1"
+      base: "0x4200000000000000000000000000000000000006"
+
+  WBTC:
+    symbol: WBTC
+    name: "Wrapped Bitcoin"
+    decimals: 8
+    networks:
+      ethereum: "0x2260FAC5E5542a773Aa44fBCfeDd86a3D015C766"
+      arbitrum: "0x2f2a2440d202b70789859642a647a0eab2d1d33b"

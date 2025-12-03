@@ -1,0 +1,145 @@
+# Crypto Portfolio Tracker v3
+# Configuración principal de la aplicación
+# ============================================================================
+
+# ============================================================================
+# DATABASE
+# ============================================================================
+database:
+  type: sqlite
+  path: ./portfolio.db
+  timeout: 5
+  echo: false
+  pool_size: 5
+  max_overflow: 10
+  # En producción: PostgreSQL
+  # type: postgresql
+  # host: localhost
+  # port: 5432
+  # user: ${DATABASE_USER}
+  # password: ${DATABASE_PASSWORD}
+  # database: crypto_tracker
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: ./logs/app.log
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+  loggers:
+    crypto_tracker:
+      level: DEBUG
+    src.database:
+      level: INFO
+    src.services:
+      level: INFO
+    src.api:
+      level: DEBUG
+
+# ============================================================================
+# API
+# ============================================================================
+api:
+  version: 3.0.0
+  title: "Crypto Portfolio Tracker API"
+  description: "Advanced cryptocurrency portfolio management and tax tracking"
+  docs_url: /docs
+  redoc_url: /redoc
+  openapi_url: /openapi.json
+  cors:
+    allow_origins:
+      - "http://localhost"
+      - "http://localhost:3000"
+      - "http://localhost:8000"
+      - "http://localhost:8080"
+      - "https://localhost"
+    allow_credentials: true
+    allow_methods: ["*"]
+    allow_headers: ["*"]
+  trusted_hosts:
+    - localhost
+    - 127.0.0.1
+    - "*.localhost"
+    - "*.example.com"
+
+# ============================================================================
+# EXCHANGES (Conectores)
+# ============================================================================
+exchanges:
+  binance:
+    enabled: true
+    base_url: https://api.binance.com
+    ws_url: wss://stream.binance.com:9443
+    rate_limit: 1200  # Requests per minute
+  coinbase:
+    enabled: true
+    base_url: https://api.coinbase.com
+    sandbox_url: https://api-sandbox.coinbase.com
+    rate_limit: 10
+  kraken:
+    enabled: true
+    base_url: https://api.kraken.com
+    rate_limit: 15
+  uniswap:
+    enabled: true
+    subgraph_url: https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2
+
+# ============================================================================
+# TAX CALCULATIONS
+# ============================================================================
+tax:
+  default_method: FIFO
+  allowed_methods:
+    - FIFO
+    - LIFO
+    - AVERAGE_COST
+  jurisdictions:
+    ES:  # España
+      name: "España"
+      holding_period: 365  # días
+      tax_rate: 0.27
+    US:  # USA
+      name: "United States"
+      holding_period: 365
+      tax_rate: 0.37
+    DE:  # Alemania
+      name: "Germany"
+      holding_period: 365
+      tax_rate: 0.42
+
+# ============================================================================
+# PRICE FETCHING
+# ============================================================================
+price_fetcher:
+  primary: coingecko
+  fallback:
+    - coinmarketcap
+    - binance
+  cache_ttl: 300  # segundos
+  coingecko:
+    rate_limit: 10  # requests per minute (free plan)
+  coinmarketcap:
+    rate_limit: 30
+
+# ============================================================================
+# PORTFOLIO
+# ============================================================================
+portfolio:
+  auto_refresh: true
+  refresh_interval: 300  # segundos
+  decimal_places: 8
+
+# ============================================================================
+# FEATURES
+# ============================================================================
+features:
+  portfolio_management: true
+  tax_calculation: true
+  defi_integration: true
+  price_tracking: true
+  transaction_history: true
+  report_generation: true
+  performance_analytics: true
