@@ -16,6 +16,8 @@ from src.database.models import (
     ExchangeBalance, ExchangeTrade, ExchangeDeposit, ExchangeWithdrawal, ExchangeAccount
 )
 from src.services.price_oracle import get_price, get_price_fiat, get_price_at
+from src.utils.config_loader import ConfigLoader
+from src.utils.helpers import Converters
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,31 @@ logger = logging.getLogger(__name__)
 class ExchangeService:
     def __init__(self, db_manager=None):
         self.db_manager = db_manager or get_db_manager()
+
+    def _upsert_price_mapping(self, session, contract_address: str, network: Optional[str] = None, symbol: Optional[str] = None, coingecko_id: Optional[str] = None):
+        """Upsert a PriceMapping row for a contract+network. Expects an active session."""
+        if not contract_address:
+            return
+        try:
+            from src.database.models import PriceMapping
+            ca = contract_address.lower()
+            existing = session.query(PriceMapping).filter_by(contract_address=ca, network=network).first()
+            if existing:
+                changed = False
+                if coingecko_id and existing.coingecko_id != coingecko_id:
+                    existing.coingecko_id = coingecko_id
+                    changed = True
+                if symbol and not existing.symbol:
+                    existing.symbol = symbol.upper()
+                    changed = True
+                if changed:
+                    existing.source = existing.source or "detected"
+            else:
+                pm = PriceMapping(symbol=(symbol.upper() if symbol else None), network=network, contract_address=ca, coingecko_id=coingecko_id, source="detected")
+                session.add(pm)
+        except Exception:
+            # Non-fatal: mapping upsert should not break exchange persistence
+            logger.debug("Failed to upsert PriceMapping (non-fatal)")
 
     def persist_balances(self, exchange_account_id: int, balances: Dict[str, Dict[str, Any]]):
         """Persist exchange balances for the given exchange account.
@@ -41,18 +68,46 @@ class ExchangeService:
                     free = Decimal(data.get('free', '0'))
                     locked = Decimal(data.get('locked', '0'))
                     total = Decimal(data.get('total', str(free + locked)))
-                    # attempt USD conversion via price oracle
+                    # If the exchange provided a contract address, persist mapping
+                    contract = data.get('contract') or data.get('contractAddress') or data.get('tokenAddress')
+                    network = data.get('network') or data.get('chain')
+                    if contract:
+                        try:
+                            self._upsert_price_mapping(session, contract, network=network, symbol=asset)
+                        except Exception:
+                            pass
+                    # attempt to obtain fiat valuation from the input when provided
+                    cfg = ConfigLoader()
+                    configured_fiat = cfg.get_fiat_currency()
+
+                    total_usd = None
+                    total_fiat = None
+
+                    # Accept direct fiat value if provided and matches configured fiat
+                    provided_total_fiat = data.get('total_fiat') or data.get('fiat_total')
+                    provided_fiat_currency = data.get('fiat_currency')
+                    if provided_total_fiat is not None:
+                        try:
+                            if not provided_fiat_currency or provided_fiat_currency.upper() == configured_fiat:
+                                total_fiat = Decimal(str(provided_total_fiat))
+                            else:
+                                total_fiat = None
+                        except Exception:
+                            total_fiat = None
+
+                    # If no provided fiat, compute via price oracle
+                    if total_fiat is None:
+                        try:
+                            price_fiat = get_price_fiat(asset)
+                            total_fiat = Decimal(price_fiat) * total if price_fiat is not None else None
+                        except Exception:
+                            total_fiat = None
+
                     try:
                         price_usd = get_price(asset, vs_currency='usd')
                         total_usd = Decimal(price_usd) * total if price_usd is not None else None
                     except Exception:
                         total_usd = None
-
-                    try:
-                        price_fiat = get_price_fiat(asset)
-                        total_fiat = Decimal(price_fiat) * total if price_fiat is not None else None
-                    except Exception:
-                        total_fiat = None
 
                     eb = ExchangeBalance(
                         exchange_account_id=exchange_account_id,
@@ -80,9 +135,12 @@ class ExchangeService:
 
                 for t in trades:
                     ts = None
-                    if t.get('timestamp'):
+                    if t.get('timestamp') is not None:
                         try:
-                            ts = datetime.fromisoformat(t['timestamp'])
+                            if isinstance(t['timestamp'], int) or isinstance(t['timestamp'], float):
+                                ts = Converters.parse_timestamp(int(t['timestamp']), unit='seconds')
+                            else:
+                                ts = datetime.fromisoformat(str(t['timestamp']))
                         except Exception:
                             ts = None
                     trade_id = str(t.get('id')) if t.get('id') is not None else None
@@ -109,7 +167,18 @@ class ExchangeService:
                         existing.commission_asset = t.get('commissionAsset') or existing.commission_asset
                         existing.is_buyer = bool(t.get('is_buyer') or t.get('isBuyer') or existing.is_buyer)
                         existing.is_maker = bool(t.get('is_maker') or t.get('isMaker') or existing.is_maker)
-                        existing.timestamp = ts or existing.timestamp
+                        # prefer provided timestamp if present; accept numeric epoch/millis as well
+                        provided_ts = t.get('timestamp')
+                        if provided_ts is not None:
+                            try:
+                                if isinstance(provided_ts, int) or isinstance(provided_ts, float):
+                                    existing.timestamp = Converters.parse_timestamp(int(provided_ts), unit='seconds')
+                                else:
+                                    existing.timestamp = datetime.fromisoformat(str(provided_ts))
+                            except Exception:
+                                existing.timestamp = ts or existing.timestamp
+                        else:
+                            existing.timestamp = ts or existing.timestamp
                     else:
                         trade = ExchangeTrade(
                             exchange_account_id=exchange_account_id,
@@ -126,23 +195,54 @@ class ExchangeService:
                             timestamp=ts,
                             created_at=now_utc()
                         )
-                        # attempt to compute fiat valuations for the trade price and commission
+                        # attempt to compute or accept fiat valuations for the trade price and commission
+                        ts_for_price = None
                         try:
-                            # compute fiat valuations at trade timestamp when possible
                             ts_for_price = int(ts.timestamp()) if ts is not None else None
-                            sym = t.get('symbol') or (t.get('symbol') or '').split('/')[0]
-                            if trade.price is not None and ts_for_price:
-                                p = get_price_at(sym, ts_for_price)
-                                trade.price_fiat = Decimal(p) if p is not None else None
                         except Exception:
-                            pass
+                            ts_for_price = None
 
-                        try:
-                            if trade.commission is not None and trade.commission_asset and ts_for_price:
-                                c = get_price_at(trade.commission_asset, ts_for_price)
-                                trade.commission_fiat = (Decimal(c) * trade.commission) if c is not None else None
-                        except Exception:
-                            pass
+                        # Prefer any fiat value provided by the exchange
+                        configured_fiat = ConfigLoader().get_fiat_currency()
+                        provided_price_fiat = t.get('price_fiat')
+                        provided_price_fiat_currency = (t.get('price_fiat_currency') or t.get('fiat_currency'))
+                        if provided_price_fiat is not None and (not provided_price_fiat_currency or provided_price_fiat_currency.upper() == configured_fiat):
+                            try:
+                                trade.price_fiat = Decimal(str(provided_price_fiat))
+                            except Exception:
+                                trade.price_fiat = None
+                        else:
+                            try:
+                                sym = t.get('symbol') or (t.get('symbol') or '').split('/')[0]
+                                if trade.price is not None and ts_for_price:
+                                    p = get_price_at(sym, ts_for_price)
+                                    trade.price_fiat = Decimal(p) if p is not None else None
+                            except Exception:
+                                trade.price_fiat = None
+
+                        # Commission fiat: prefer provided
+                        provided_commission_fiat = t.get('commission_fiat')
+                        provided_commission_fiat_currency = t.get('commission_fiat_currency')
+                        if provided_commission_fiat is not None and (not provided_commission_fiat_currency or provided_commission_fiat_currency.upper() == configured_fiat):
+                            try:
+                                trade.commission_fiat = Decimal(str(provided_commission_fiat))
+                            except Exception:
+                                trade.commission_fiat = None
+                        else:
+                            try:
+                                if trade.commission is not None and trade.commission_asset and ts_for_price:
+                                    c = get_price_at(trade.commission_asset, ts_for_price)
+                                    trade.commission_fiat = (Decimal(c) * trade.commission) if c is not None else None
+                            except Exception:
+                                trade.commission_fiat = None
+                        # If trade object has contract info, persist mapping
+                        contract = t.get('contract') or t.get('contractAddress') or t.get('tokenAddress')
+                        network = t.get('network') or t.get('chain')
+                        if contract:
+                            try:
+                                self._upsert_price_mapping(session, contract, network=network, symbol=trade.symbol)
+                            except Exception:
+                                pass
                         session.add(trade)
 
                 logger.info(f"Persisted {len(trades)} trades for account {exchange_account_id}")
@@ -159,9 +259,12 @@ class ExchangeService:
 
                 for d in deposits:
                     ts = None
-                    if d.get('timestamp'):
+                    if d.get('timestamp') is not None:
                         try:
-                            ts = datetime.fromisoformat(d['timestamp'])
+                            if isinstance(d['timestamp'], int) or isinstance(d['timestamp'], float):
+                                ts = Converters.parse_timestamp(int(d['timestamp']), unit='seconds')
+                            else:
+                                ts = datetime.fromisoformat(str(d['timestamp']))
                         except Exception:
                             ts = None
                     deposit_id = str(d.get('id')) if d.get('id') is not None else None
@@ -196,18 +299,37 @@ class ExchangeService:
                             timestamp=ts,
                             created_at=now_utc()
                         )
-                        # compute fiat valuation for deposit amount
-                        try:
-                            # use deposit timestamp if available
-                            if dep.amount is not None and dep.timestamp is not None:
-                                when = int(dep.timestamp.timestamp()) if hasattr(dep.timestamp, 'timestamp') else None
-                                if when:
-                                    p = get_price_at(dep.asset, when)
-                                    dep.amount_fiat = Decimal(p) * dep.amount if p is not None else None
-                        except Exception:
-                            pass
+                        # Accept provided fiat amount if present, else compute via price oracle
+                        cfg = ConfigLoader()
+                        configured_fiat = cfg.get_fiat_currency()
+                        provided_amount_fiat = d.get('amount_fiat') or d.get('fiat_amount')
+                        provided_amount_fiat_currency = d.get('fiat_currency')
+                        if provided_amount_fiat is not None and (not provided_amount_fiat_currency or provided_amount_fiat_currency.upper() == configured_fiat):
+                            try:
+                                dep.amount_fiat = Decimal(str(provided_amount_fiat))
+                            except Exception:
+                                dep.amount_fiat = None
+                        else:
+                            try:
+                                # use deposit timestamp if available
+                                if dep.amount is not None and dep.timestamp is not None:
+                                    when = int(dep.timestamp.timestamp()) if hasattr(dep.timestamp, 'timestamp') else None
+                                    if when:
+                                        p = get_price_at(dep.asset, when)
+                                        dep.amount_fiat = Decimal(p) * dep.amount if p is not None else None
+                            except Exception:
+                                pass
 
                         session.add(dep)
+
+                        # If deposit includes token contract, persist mapping
+                        d_contract = d.get('contract') or d.get('contractAddress') or d.get('tokenAddress')
+                        d_network = d.get('network') or d.get('chain')
+                        if d_contract:
+                            try:
+                                self._upsert_price_mapping(session, d_contract, network=d_network, symbol=dep.asset)
+                            except Exception:
+                                pass
 
                 logger.info(f"Persisted {len(deposits)} deposits for account {exchange_account_id}")
         except Exception as e:
@@ -223,9 +345,12 @@ class ExchangeService:
 
                 for w in withdrawals:
                     ts = None
-                    if w.get('timestamp'):
+                    if w.get('timestamp') is not None:
                         try:
-                            ts = datetime.fromisoformat(w['timestamp'])
+                            if isinstance(w['timestamp'], int) or isinstance(w['timestamp'], float):
+                                ts = Converters.parse_timestamp(int(w['timestamp']), unit='seconds')
+                            else:
+                                ts = datetime.fromisoformat(str(w['timestamp']))
                         except Exception:
                             ts = None
                     withdrawal_id = str(w.get('id')) if w.get('id') is not None else None
@@ -259,17 +384,37 @@ class ExchangeService:
                             timestamp=ts,
                             created_at=now_utc()
                         )
-                        try:
-                            # use withdrawal timestamp if available
-                            if wd.amount is not None and wd.timestamp is not None:
-                                when = int(wd.timestamp.timestamp()) if hasattr(wd.timestamp, 'timestamp') else None
-                                if when:
-                                    p = get_price_at(wd.asset, when)
-                                    wd.amount_fiat = Decimal(p) * wd.amount if p is not None else None
-                        except Exception:
-                            pass
+                        # Accept provided fiat amount if present, else compute via price oracle
+                        cfg = ConfigLoader()
+                        configured_fiat = cfg.get_fiat_currency()
+                        provided_amount_fiat = w.get('amount_fiat') or w.get('fiat_amount')
+                        provided_amount_fiat_currency = w.get('fiat_currency')
+                        if provided_amount_fiat is not None and (not provided_amount_fiat_currency or provided_amount_fiat_currency.upper() == configured_fiat):
+                            try:
+                                wd.amount_fiat = Decimal(str(provided_amount_fiat))
+                            except Exception:
+                                wd.amount_fiat = None
+                        else:
+                            try:
+                                # use withdrawal timestamp if available
+                                if wd.amount is not None and wd.timestamp is not None:
+                                    when = int(wd.timestamp.timestamp()) if hasattr(wd.timestamp, 'timestamp') else None
+                                    if when:
+                                        p = get_price_at(wd.asset, when)
+                                        wd.amount_fiat = Decimal(p) * wd.amount if p is not None else None
+                            except Exception:
+                                pass
 
                         session.add(wd)
+
+                        # If withdrawal includes token contract, persist mapping
+                        w_contract = w.get('contract') or w.get('contractAddress') or w.get('tokenAddress')
+                        w_network = w.get('network') or w.get('chain')
+                        if w_contract:
+                            try:
+                                self._upsert_price_mapping(session, w_contract, network=w_network, symbol=wd.asset)
+                            except Exception:
+                                pass
 
                 logger.info(f"Persisted {len(withdrawals)} withdrawals for account {exchange_account_id}")
         except Exception as e:

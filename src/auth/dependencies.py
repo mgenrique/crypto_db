@@ -40,7 +40,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         )
     
     user_id = payload.get("user_id")
-    if not user_id:
+    # Accept 0 as a valid user id (single-user deployments may use id 0)
+    if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload"
@@ -80,19 +81,32 @@ async def get_api_key_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key and secret required"
         )
-    
-    auth_svc = AuthService(get_db_manager())
-    user_id = auth_svc.verify_api_key(key, secret)
-    
+
+    # Use single-user auth service if available (no DB lookup)
+    try:
+        svc = get_auth_service()
+        # svc may be SingleUserAuthService or AuthService; both expose verify_api_key
+        user_id = svc.verify_api_key(key, secret)
+    except Exception:
+        user_id = None
+
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key or secret"
         )
-    
+
     return user_id
 
 
 def get_auth_service() -> AuthService:
     """Get authentication service"""
+    # Prefer single-user service when env vars are set. Import lazily to avoid
+    # creating DB model side-effects during app startup.
+    from os import getenv
+    if getenv("ADMIN_EMAIL"):
+        from src.auth.service import SingleUserAuthService
+        return SingleUserAuthService()
+
+    # Fallback to DB-backed AuthService
     return AuthService(get_db_manager())

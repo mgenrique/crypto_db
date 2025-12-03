@@ -133,6 +133,18 @@ price_fetcher:
   coinmarketcap:
     rate_limit: 30
 
+# Mapping from CoinGecko platform slugs to local network names used in
+# `config/networks.yaml`. This allows the application to persist `PriceMapping`
+# rows using the canonical network keys from the YAML configuration.
+platform_aliases:
+  polygon-pos: polygon
+  binance-smart-chain: bsc
+  arbitrum-one: arbitrum
+  avalanche: avalanche
+  base: base
+  ethereum: ethereum
+  solana: solana
+
 # ============================================================================
 # PORTFOLIO
 # ============================================================================

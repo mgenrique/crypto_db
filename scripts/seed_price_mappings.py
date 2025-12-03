@@ -9,6 +9,15 @@ Usage:
     python scripts/seed_price_mappings.py
 """
 import logging
+import os
+import sys
+
+# Ensure project root is on sys.path so `from src...` imports work when the
+# script is executed directly from `scripts/`.
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if root not in sys.path:
+    sys.path.insert(0, root)
+
 from src.services import price_oracle
 from src.database.manager import get_db_manager
 from src.database.models import PriceMapping

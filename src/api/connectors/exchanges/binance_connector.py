@@ -264,22 +264,44 @@ class BinanceConnector:
         """Get trades for symbol"""
         try:
             trades = self.client.get_my_trades(symbol=symbol, limit=limit)
-            
-            result = [
-                {
+            result = []
+            fiat_quotes = ['USDT', 'USDC', 'BUSD', 'USD', 'EUR', 'GBP']
+            fiat_map = {'USDT': 'USD', 'USDC': 'USD', 'BUSD': 'USD'}
+
+            for t in trades:
+                ts_iso = datetime.fromtimestamp(t['time'] / 1000).isoformat()
+                entry = {
                     "id": t['id'],
                     "symbol": t['symbol'],
                     "price": t['price'],
                     "qty": t['qty'],
                     "commission": t['commission'],
-                    "commissionAsset": t['commissionAsset'],
-                    "is_buyer": t['isBuyer'],
-                    "is_maker": t['isMaker'],
-                    "timestamp": datetime.fromtimestamp(t['time'] / 1000).isoformat()
+                    "commissionAsset": t.get('commissionAsset'),
+                    "is_buyer": t.get('isBuyer'),
+                    "is_maker": t.get('isMaker'),
+                    "timestamp": ts_iso
                 }
-                for t in trades
 
-            ]
+                # If symbol is a fiat-quoted pair (eg BTCUSDT, ETHUSD), expose price_fiat
+                sym = t.get('symbol') or ''
+                for q in fiat_quotes:
+                    if sym.endswith(q):
+                        try:
+                            entry['price_fiat'] = t.get('price')
+                            entry['price_fiat_currency'] = fiat_map.get(q, q)
+                        except Exception:
+                            pass
+                        break
+
+                # pass through any native fiat fields if present
+                if 'priceUsd' in t:
+                    entry['price_fiat'] = t.get('priceUsd')
+                    entry['price_fiat_currency'] = 'USD'
+                if 'commissionUsd' in t:
+                    entry['commission_fiat'] = t.get('commissionUsd')
+                    entry['commission_fiat_currency'] = 'USD'
+
+                result.append(entry)
 
             if persist_account_id and self._exchange_service:
                 try:

@@ -1,0 +1,295 @@
+INFO:     Will watch for changes in these directories: ['E:\\VSC_CryptoDB2']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [17996] using WatchFiles
+INFO:     Started server process [8976]
+INFO:     Waiting for application startup.
+\u274c Error fetching balance: APIError(code=-2014): API-key format invalid.
+Failed fetching balances for acct 1: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching deposit history: APIError(code=-2008): Invalid Api-Key ID.
+\u274c Error fetching withdraw history: APIError(code=-2008): Invalid Api-Key ID.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+INFO:     Application startup complete.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key formHTTP 404: Not Found | Path: /auth/register
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [9852]
+WARNING:  WatchFiles detected changes in 'venv\Lib\site-packages\dateparser\data\date_translation_data\ps.py', 'venv\Lib\site-packages\coinbase\wallet\compat.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\zh-Hans.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\sk.py', 'venv\Lib\site-packages\dateparser_data\settings.py', 'venv\Lib\site-packages\dateutil\rrule.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\gu.py', 'venv\Lib\site-packages\tzdata\zoneinfo\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\lt.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\dsb.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\mgo.py', 'venv\Lib\site-packages\binance\enums.py', 'venv\Lib\site-packages\dateparser\parser.py', 'venv\Lib\site-packages\tzdata\zoneinfo\America\Argentina\__init__.py', 'venv\Lib\site-packages\tzdata\zoneinfo\Mexico\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\lb.py', 'venv\Lib\site-packages\dateutil\parser\__init__.py', 'src\auth\dependencies.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\rm.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\naq.py', 'venv\Lib\site-packages\dateparser_scripts\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ff.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\qu.py', 'venv\Lib\site-packages\tzlocal\win32.py', 'venv\Lib\site-packages\tzdata\zoneinfo\US\__init__.py', 'venv\Lib\site-packages\tzdata\zoneinfo\America\__init__.py', 'venv\Lib\site-packages\dateutil\utils.py', 'venv\Lib\site-packages\dateutil\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ka.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ca.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\pt.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\tl.py', 'venv\Lib\site-packages\dateparser\custom_language_detection\fasttext.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ks.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ga.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\or.py', 'venv\Lib\site-packages\dateparser_cli\fasttext_manager.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\mr.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\de.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\zh.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\tzm.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\jgo.py', 'src\database\models.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\dua.py', 'venv\Lib\site-packages\krakenex\version.py', 'venv\Lib\site-packages\dateparser\timezone_parser.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ru.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\se.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\bn.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\brx.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\th.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\nyn.py', 'venv\Lib\site-packages\dateparser_scripts\update_supported_languages_and_locales.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\lg.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\zu.py', 'venv\Lib\site-packages\dateparser\freshness_date_parser.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\zh-Hant.py', 'venv\Lib\site-packages\dateparser\languages\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\os.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ak.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\rn.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\om.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\kln.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ksh.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ebu.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\bas.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\ms.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\saq.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\sbp.py', 'venv\Lib\site-packages\dateparser\languages\validation.py', 'venv\Lib\site-packages\dateparser\search\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\is.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\lag.py', 'venv\Lib\site-packages\tzdata\zoneinfo\America\Kentucky\__init__.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\nb.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\luo.py', 'venv\Lib\site-packages\dateparser\calendars\jalali.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\bem.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\bs-Cyrl.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\to.py', 'venv\Lib\site-packages\dateparser\data\date_translation_data\eo.py', 'venv\Lib\site-packageTraceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\VSC_CryptoDB2\main.py", line 46, in <module>
+    from src.api.v1 import router, exchanges_router, auth_router, price_mappings_router
+  File "E:\VSC_CryptoDB2\src\api\v1\__init__.py", line 57, in <module>
+    from .dependencies import (
+  File "E:\VSC_CryptoDB2\src\api\v1\dependencies.py", line 10, in <module>
+    from sqlalchemy.orm import Session
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\__init__.py", line 12, in <module>
+    from . import util as _util
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\__init__.py", line 14, in <module>
+    from ._collections import coerce_generator_arg as coerce_generator_arg
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 38, in <module>
+    from ._has_cy import HAS_CYEXTENSION
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\_has_cy.py", line 32, in <module>
+    _import_cy_extensions()
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\_has_cy.py", line 20, in _import_cy_extensions
+    from ..cyextension import util
+  File "lib/sqlalchemy/cyextension/util.pyx", line 9, in init sqlalchemy.cyextension.util
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\exc.py", line 26, in <module>
+    from .util import compat
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\compat.py", line 50, in <module>
+    arm = "aarch" in platform.machine().lower()
+                     ^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 1023, in machine
+    return uname().machine
+           ^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 921, in uname
+    release, version, csd, ptype = win32_ver()
+                                   ^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 449, in win32_ver
+    version, csd, ptype, is_client = _win32_ver(version, csd, ptype)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 387, in _win32_ver
+    (version, product_type, ptype, spmajor, spminor)  = _wmi_query(
+                                                        ^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 327, in _wmi_query
+    data = _wmi.exec_query("SELECT {} FROM {}".format(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+INFO:     Started server process [2668]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'tests\tmp_api_test.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2668]
+WARNING:  WatchFiles detected changes in 'tests\tmp_api_test.py', 'src\auth\models.py', 'src\auth\dependencies.py'. Reloading...
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\VSC_CryptoDB2\main.py", line 46, in <module>
+    from src.api.v1 import router, exchanges_router, auth_router, price_mappings_router
+  File "E:\VSC_CryptoDB2\src\api\v1\__init__.py", line 57, in <module>
+    from .dependencies import (
+  File "E:\VSC_CryptoDB2\src\api\v1\dependencies.py", line 10, in <module>
+    from sqlalchemy.orm import Session
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\__init__.py", line 12, in <module>
+    from . import util as _util
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\__init__.py", line 14, in <module>
+    from ._collections import coerce_generator_arg as coerce_generator_arg
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 38, in <module>
+    from ._has_cy import HAS_CYEXTENSION
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\_has_cy.py", line 32, in <module>
+    _import_cy_extensions()
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\_has_cy.py", line 20, in _import_cy_extensions
+    from ..cyextension import util
+  File "lib/sqlalchemy/cyextension/util.pyx", line 9, in init sqlalchemy.cyextension.util
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\exc.py", line 26, in <module>
+    from .util import compat
+  File "E:\VSC_CryptoDB2\venv\Lib\site-packages\sqlalchemy\util\compat.py", line 50, in <module>
+    arm = "aarch" in platform.machine().lower()
+                     ^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 1023, in machine
+    return uname().machine
+           ^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 921, in uname
+    release, version, csd, ptype = win32_ver()
+                                   ^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 449, in win32_ver
+    version, csd, ptype, is_client = _win32_ver(version, csd, ptype)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 387, in _win32_ver
+    (version, product_type, ptype, spmajor, spminor)  = _wmi_query(
+                                                        ^^^^^^^^^^^
+  File "C:\Python312\Lib\platform.py", line 327, in _wmi_query
+    data = _wmi.exec_query("SELECT {} FROM {}".format(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+INFO:     Started server process [10040]
+INFO:     Waiting for application startup.
+\u274c Error fetching balance: APIError(code=-2014): API-key format invalid.
+Failed fetching balances for acct 1: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching deposit history: APIError(code=-2008): Invalid Api-Key ID.
+\u274c Error fetching withdraw history: APIError(code=-2008): Invalid Api-Key ID.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+INFO:     Application startup complete.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+Could not init Coinbase connector for account 2: coinbase library not installed. pip install coinbase
+\u274c Error fetching balance: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+Failed fetching balances for Kraken acct 3: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+\u274c Error fetching trades: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+\u274c Error fetching transactions: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+CoinGecko fetch failed: 429 Client Error: Too Many Requests for url: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur
+Session error: name 'now_utc' is not defined
+CoinGecko fetch failed: 429 Client Error: Too Many Requests for url: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd
+Session error: name 'now_utc' is not defined
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+WARNING:  WatchFiles detected changes in 'tests\test_background_sync_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10040]
+INFO:     Started server process [7660]
+INFO:     Waiting for application startup.
+\u274c Error fetching balance: APIError(code=-2014): API-key format invalid.
+Failed fetching balances for acct 1: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching deposit history: APIError(code=-2008): Invalid Api-Key ID.
+\u274c Error fetching withdraw history: APIError(code=-2008): Invalid Api-Key ID.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+INFO:     Application startup complete.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+Could not init Coinbase connector for account 2: coinbase library not installed. pip install coinbase
+\u274c Error fetching balance: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+Failed fetching balances for Kraken acct 3: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+\u274c Error fetching trades: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+\u274c Error fetching transactions: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+Session error: ExchangeAccount 4 not found
+Error persisting balances: ExchangeAccount 4 not found
+Could not persist balances: ExchangeAccount 4 not found
+Session error: ExchangeAccount 4 not found
+Error persisting deposits: ExchangeAccount 4 not found
+Could not persist deposits: ExchangeAccount 4 not found
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+Session error: ExchangeAccount 5 not found
+Error persisting balances: ExchangeAccount 5 not found
+Could not persist balances: ExchangeAccount 5 not found
+Session error: ExchangeAccount 5 not found
+Error persisting deposits: ExchangeAccount 5 not found
+Could not persist deposits: ExchangeAccount 5 not found
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current 

@@ -12,6 +12,15 @@ from main import app
 import uuid
 
 # Ensure YAML config loaded
+# For single-user mode tests, set admin creds in env before ConfigLoader reads .env
+import os
+os.environ.setdefault('ADMIN_EMAIL', 'test+admin@example.com')
+os.environ.setdefault('ADMIN_USERNAME', 'testadmin')
+# For tests we can use a plain password (or set ADMIN_PASSWORD_HASH instead)
+os.environ.setdefault('ADMIN_PASSWORD', 'Testpass123!')
+
+used_admin = bool(os.environ.get('ADMIN_EMAIL'))
+
 cfg = ConfigLoader()
 
 # Initialize DB and create tables for both bases
@@ -31,24 +40,40 @@ username = f"testuser_{uuid.uuid4().hex[:6]}"
 password = "Testpass123!"
 
 print('Registering user:', email)
-r = client.post('/api/v1/auth/register', json={
-    'email': email,
-    'username': username,
-    'password': password
-})
-print('Register status', r.status_code, r.text)
-if r.status_code not in (200, 201):
-    raise SystemExit('Register failed')
+if used_admin:
+    # Single-user mode: perform login using ADMIN_* env variables
+    login_email = os.environ.get('ADMIN_EMAIL')
+    login_password = os.environ.get('ADMIN_PASSWORD')
+    print('Single-user login as', login_email)
+    r = client.post('/api/v1/auth/login', json={'email': login_email, 'password': login_password})
+    print('Login status', r.status_code, r.text)
+    if r.status_code != 200:
+        raise SystemExit('Login failed')
+else:
+    r = client.post('/api/v1/auth/register', json={
+        'email': email,
+        'username': username,
+        'password': password
+    })
+    print('Register status', r.status_code, r.text)
+    if r.status_code not in (200, 201):
+        raise SystemExit('Register failed')
 
-print('Logging in...')
-r = client.post('/api/v1/auth/login', json={'email': email, 'password': password})
-print('Login status', r.status_code, r.text)
-if r.status_code != 200:
-    raise SystemExit('Login failed')
+if not used_admin:
+    print('Logging in...')
+    r = client.post('/api/v1/auth/login', json={'email': email, 'password': password})
+    print('Login status', r.status_code, r.text)
+    if r.status_code != 200:
+        raise SystemExit('Login failed')
 
-data = r.json()
-access_token = data.get('access_token')
-headers = {'Authorization': f"Bearer {access_token}"}
+    data = r.json()
+    access_token = data.get('access_token')
+    headers = {'Authorization': f"Bearer {access_token}"}
+else:
+    # use token from earlier admin login
+    data = r.json()
+    access_token = data.get('access_token')
+    headers = {'Authorization': f"Bearer {access_token}"}
 
 # Create exchange account
 print('Creating exchange account...')

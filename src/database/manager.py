@@ -211,3 +211,67 @@ def init_database():
     from src.database.models import Base
     db = get_db_manager()
     db.create_tables(Base)
+    # After creating tables, seed price mappings from the YAML networks/tokens
+    try:
+        _seed_price_mappings_from_config(db)
+    except Exception:
+        # Seeding should not prevent DB from being usable if it fails
+        logger.exception("Failed to seed price_mappings from config")
+
+
+def _seed_price_mappings_from_config(dbm: DatabaseManager):
+    """Read tokens from config/networks.yaml and upsert PriceMapping rows.
+
+    Uses ConfigLoader.get_tokens() to obtain known tokens and their
+    per-network contract addresses. Resolves CoinGecko ids via
+    src.services.price_oracle.SYMBOL_TO_COINGECKO_ID when possible.
+    """
+    from src.utils.config_loader import ConfigLoader
+    from src.database.models import PriceMapping
+
+    cfg = ConfigLoader()
+    tokens = cfg.get_tokens() or {}
+
+    # import price_oracle lazily to avoid circular imports at module load
+    try:
+        from src.services import price_oracle
+        symbol_map = getattr(price_oracle, "SYMBOL_TO_COINGECKO_ID", {})
+    except Exception:
+        symbol_map = {}
+
+    added = 0
+    updated = 0
+
+    with dbm.session_context() as session:
+        for symbol, info in tokens.items():
+            networks = info.get("networks", {}) or {}
+            for network_name, addr in networks.items():
+                if not addr:
+                    continue
+                # normalize addresses to lowercase
+                addr_norm = addr.lower()
+                # determine coingecko id: prefer symbol_map entry, else None
+                cg_id = symbol_map.get(symbol.upper())
+                # fallback to symbol lowercased if not found
+                if not cg_id:
+                    cg_id = symbol.lower()
+
+                # Upsert by contract_address + network
+                existing = session.query(PriceMapping).filter_by(contract_address=addr_norm, network=network_name).first()
+                if existing:
+                    if existing.coingecko_id != cg_id:
+                        existing.coingecko_id = cg_id
+                        existing.source = existing.source or "builtin_config"
+                        updated += 1
+                else:
+                    pm = PriceMapping(
+                        symbol=symbol.upper(),
+                        network=network_name,
+                        contract_address=addr_norm,
+                        coingecko_id=cg_id,
+                        source="builtin_config",
+                    )
+                    session.add(pm)
+                    added += 1
+
+    logger.info(f"Seeded price_mappings from config: added={added}, updated={updated}")

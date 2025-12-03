@@ -8,11 +8,12 @@ SQLAlchemy ORM models with proper relationships and constraints.
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Numeric, Index, UniqueConstraint, Text, Enum as SQLEnum, Boolean
 from sqlalchemy.orm import relationship
 from src.database.base import Base
-# Ensure auth models (UserModel) are imported so ForeignKey references to
-# 'users' resolve when creating all tables. Importing here registers the
-# `UserModel` with the shared declarative `Base` before other models are
-# defined which reference it.
-import src.auth.models  # noqa: F401
+# Note: single-user deployments may not require `users`/`api_keys` tables.
+# Avoid importing `src.auth.models` here so that table creation does not
+# automatically register DB-backed user models when the app is running
+# in single-user mode. Columns that previously referenced `users.id`
+# are defined as plain Integer owner/user identifiers (no FK) to keep
+# the schema simple and avoid cross-table constraints.
 from datetime import datetime, timezone
 from src.utils.time import now_utc
 from decimal import Decimal
@@ -36,9 +37,8 @@ class WalletModel(Base):
     created_at = Column(DateTime, default=now_utc, nullable=False)
     updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
 
-    # Ownership (optional)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
-    user = relationship("UserModel", back_populates="wallets")
+    # Ownership (optional) - plain integer owner id, no DB foreign key
+    user_id = Column(Integer, nullable=True, index=True)
 
     # Relationships
     transactions = relationship("TransactionModel", back_populates="wallet", cascade="all, delete-orphan")
@@ -156,9 +156,8 @@ class ExchangeAccount(Base):
     __tablename__ = "exchange_accounts"
     
     id = Column(Integer, primary_key=True)
-    # Strict DB-level ownership using ForeignKey to users.id
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    user = relationship("UserModel", back_populates="exchange_accounts")
+    # Ownership stored as integer owner id (no foreign key constraint)
+    user_id = Column(Integer, nullable=False, index=True)
     exchange = Column(String(50), nullable=False)  # binance, coinbase, kraken
     api_key_encrypted = Column(String(500), nullable=False)
     api_secret_encrypted = Column(String(500), nullable=False)
@@ -255,8 +254,7 @@ class BlockchainWallet(Base):
     __tablename__ = "blockchain_wallets"
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    user = relationship("UserModel", back_populates="blockchain_wallets")
+    user_id = Column(Integer, nullable=False, index=True)
     address = Column(String(500), nullable=False)
     network = Column(String(50), nullable=False)  # ethereum, bitcoin, solana, etc
     wallet_type = Column(String(50), nullable=False)  # metamask, phantom, ledger
@@ -287,8 +285,7 @@ class DeFiPosition(Base):
     __tablename__ = "defi_positions"
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    user = relationship("UserModel", back_populates="defi_positions")
+    user_id = Column(Integer, index=True)
     address = Column(String(500), nullable=False)
     protocol = Column(String(50), nullable=False)  # uniswap, aave, etc
     position_type = Column(String(50), nullable=False)  # liquidity, lending, borrowing

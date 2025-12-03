@@ -12,6 +12,8 @@ import logging
 
 from src.auth.service import AuthService
 from src.auth.dependencies import get_current_user, get_auth_service
+from os import getenv
+from src.database import get_db_manager
 
 logger = logging.getLogger(__name__)
 
@@ -75,29 +77,39 @@ async def register(
             "password": "securepass123"
         }
     """
-    try:
-        user = auth_svc.register_user(
-            email=request.email,
-            username=request.username,
-            password=request.password
-        )
-        return {
-            "status": "success",
-            "message": "User registered successfully",
-            "user": user
-        }
-    except ValueError as e:
-        logger.warning(f"Registration failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Registration error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed"
-        )
+    # By default registration is disabled in single-user deployments.
+    # For test or compatibility scenarios, allow opt-in via ALLOW_REGISTRATION=true.
+    if getenv("ALLOW_REGISTRATION", "").lower() == "true":
+        # Use DB-backed AuthService explicitly to perform registration
+        svc = AuthService(get_db_manager())
+        try:
+            user = svc.register_user(
+                email=request.email,
+                username=request.username,
+                password=request.password,
+            )
+            return {
+                "status": "success",
+                "message": "User registered successfully",
+                "user": user
+            }
+        except ValueError as e:
+            logger.warning(f"Registration failed: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e)
+            )
+        except Exception as e:
+            logger.error(f"Registration error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Registration failed"
+            )
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Registration disabled in single-user mode"
+    )
 
 
 @router.post("/login", response_model=dict)
@@ -195,18 +207,11 @@ async def create_api_key(
     Headers:
         Authorization: Bearer {access_token}
     """
-    try:
-        api_key = auth_svc.create_api_key(
-            user_id=current_user['user_id'],
-            name=request.name
-        )
-        return api_key
-    except Exception as e:
-        logger.error(f"API key creation error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to create API key"
-        )
+    # API key creation persisted in DB is disabled in single-user mode.
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="API key creation disabled in single-user mode"
+    )
 
 
 @router.get("/api-keys")
@@ -223,15 +228,11 @@ async def list_api_keys(
     Headers:
         Authorization: Bearer {access_token}
     """
-    try:
-        keys = auth_svc.get_user_api_keys(current_user['user_id'])
-        return {"api_keys": keys}
-    except Exception as e:
-        logger.error(f"Error listing API keys: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to list API keys"
-        )
+    # Listing API keys is not supported in single-user mode
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="API key management disabled in single-user mode"
+    )
 
 
 @router.get("/profile")

@@ -178,6 +178,23 @@ class CoinbaseConnector:
                     "is_maker": None,
                     "timestamp": ts
                 })
+            
+            # Try to include native fiat values when available (eg product quotes in USD)
+            for tr, f in zip(trades, fills):
+                # product_id like BTC-USD means quote in USD
+                pid = f.get('product_id') or ''
+                if isinstance(pid, str) and pid.endswith('-USD'):
+                    # price is already in USD for BTC-USD etc.
+                    tr['price_fiat'] = f.get('price')
+                    tr['price_fiat_currency'] = 'USD'
+
+                # Coinbase may include native amounts/fees in the payload
+                if f.get('price_native'):
+                    tr['price_fiat'] = f.get('price_native')
+                    tr['price_fiat_currency'] = f.get('price_native_currency') or 'USD'
+                if f.get('fee_native'):
+                    tr['commission_fiat'] = f.get('fee_native')
+                    tr['commission_fiat_currency'] = f.get('fee_native_currency') or 'USD'
 
             if persist_account_id and self._exchange_service:
                 try:

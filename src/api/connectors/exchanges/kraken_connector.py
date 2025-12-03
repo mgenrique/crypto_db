@@ -165,6 +165,20 @@ class KrakenConnector:
                     "qty": trade.get('vol'),
                     "timestamp": ts
                 })
+            # Attempt to expose fiat-valued fields when pair is fiat-quoted (eg XBTUSD)
+            fiat_identifiers = ['USD', 'EUR', 'GBP']
+            for tr in trades:
+                pair = tr.get('symbol') or ''
+                for f in fiat_identifiers:
+                    if f in pair:
+                        # Kraken 'price' and 'cost' are in quote asset; expose as fiat when quote is fiat
+                        try:
+                            if tr.get('price'):
+                                tr['price_fiat'] = tr.get('price')
+                                tr['price_fiat_currency'] = f
+                        except Exception:
+                            pass
+                        break
 
             trades.sort(key=lambda x: x.get('timestamp') or '', reverse=True)
 

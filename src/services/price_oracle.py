@@ -18,8 +18,10 @@ _CONFIG = ConfigLoader()
 
 logger = logging.getLogger(__name__)
 
-# Simple mapping; extend as needed
-SYMBOL_TO_COINGECKO_ID = {
+# Conservative fallback mapping for common symbols/ids. This will be
+# extended/overridden by values read from YAML configuration at runtime so
+# the canonical source of truth can become the YAML files.
+_FALLBACK_SYMBOL_MAP = {
     "ETH": "ethereum",
     "BTC": "bitcoin",
     "MATIC": "polygon-pos",
@@ -28,10 +30,6 @@ SYMBOL_TO_COINGECKO_ID = {
     "USDT": "tether",
     "USDC": "usd-coin",
     "BNB": "binancecoin",
-}
-
-# Extended mapping for common tokens
-SYMBOL_TO_COINGECKO_ID.update({
     "DAI": "dai",
     "LINK": "chainlink",
     "LTC": "litecoin",
@@ -44,7 +42,43 @@ SYMBOL_TO_COINGECKO_ID.update({
     "WBTC": "wrapped-bitcoin",
     "FTM": "fantom",
     "SUSHI": "sushi",
-})
+    # wrapped/chain variants that are safe to include by default
+    "WETH": "weth",
+    "WETH_POLYGON": "weth",
+    "WETH_ARBITRUM": "weth",
+    "WETH_OPTIMISM": "weth",
+    "WETH_BSC": "weth",
+    "WBTC_POLYGON": "wrapped-bitcoin",
+    "WBTC_ARBITRUM": "wrapped-bitcoin",
+    "WBTC_OPTIMISM": "wrapped-bitcoin",
+    "USDC_POLYGON": "usd-coin",
+    "USDT_POLYGON": "tether",
+    "USDC_SOLANA": "usd-coin",
+    "USDT_SOLANA": "tether",
+    "USDC_BSC": "usd-coin",
+    "USDT_BSC": "tether",
+    "WBNB": "wbnb",
+    "WBNB_BSC": "wbnb",
+    "WETH.E": "weth",
+    "WBTC.W": "wrapped-bitcoin",
+}
+
+
+# Build final mapping using YAML tokens first (preferred), falling back to
+# the conservative hardcoded map for symbols not present in YAML.
+SYMBOL_TO_COINGECKO_ID = _FALLBACK_SYMBOL_MAP.copy()
+try:
+    cfg = ConfigLoader()
+    tokens = cfg.get_tokens() or {}
+    for sym, info in tokens.items():
+        # prefer explicit `coingecko_id` in YAML, otherwise fallback to lowercased symbol
+        cg = info.get("coingecko_id") if isinstance(info, dict) else None
+        if not cg:
+            cg = sym.lower()
+        SYMBOL_TO_COINGECKO_ID[sym.upper()] = cg
+except Exception:
+    # If config cannot be loaded for any reason, keep the fallback mapping
+    logger.debug("Failed to build SYMBOL_TO_COINGECKO_ID from YAML; using fallback mapping")
 
 _CACHE = {}
 _CACHE_TTL = 60  # seconds
@@ -206,23 +240,94 @@ def get_price_at(symbol: str, when_ts: int, vs_currency: str = None) -> Optional
             if not cg_id:
                 try:
                     _ensure_rate_limit()
-                    # CoinGecko contract lookup assumes platform=ethereum for 0x addresses
-                    url = f"https://api.coingecko.com/api/v3/coins/ethereum/contract/{symbol.lower()}"
-                    resp = requests.get(url, timeout=10)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        cg_id = data.get('id')
-                        if cg_id:
-                            # persist mapping
-                            try:
-                                from src.database.manager import get_db_manager
-                                from src.database.models import PriceMapping
-                                dbm = get_db_manager()
-                                with dbm.session_context() as session:
-                                    pm = PriceMapping(symbol=None, network='ethereum', contract_address=symbol.lower(), coingecko_id=cg_id, source='coin_gecko_contract')
-                                    session.add(pm)
-                            except Exception:
-                                pass
+                    # Try multiple CoinGecko platform slugs in order of likelihood.
+                    # The platform slug will be persisted in PriceMapping.network so
+                    # it can be used later. If a platform does not support the
+                    # address lookup, the request will typically 404 and we move on.
+                    platforms = [
+                        "ethereum",
+                        "polygon-pos",
+                        "binance-smart-chain",
+                        "arbitrum-one",
+                        "avalanche",
+                        "base",
+                        "solana",
+                    ]
+                    for platform in platforms:
+                        try:
+                            url = f"https://api.coingecko.com/api/v3/coins/{platform}/contract/{symbol.lower()}"
+                            resp = requests.get(url, timeout=10)
+                            if resp.status_code == 200:
+                                data = resp.json()
+                                cg_id = data.get("id")
+                                if cg_id:
+                                    # Map CoinGecko platform slug to our config network name
+                                    try:
+                                        from src.utils.config_loader import ConfigLoader
+                                        cfg = ConfigLoader()
+
+                                        def _platform_to_network(slug: str) -> str:
+                                            # Start from configurable aliases in YAML, falling
+                                            # back to a small conservative builtin map.
+                                            try:
+                                                aliases = _CONFIG.get_platform_aliases()
+                                            except Exception:
+                                                aliases = {}
+
+                                            builtin = {
+                                                "polygon-pos": "polygon",
+                                                "binance-smart-chain": "bsc",
+                                                "arbitrum-one": "arbitrum",
+                                                "avalanche": "avalanche",
+                                                "base": "base",
+                                                "ethereum": "ethereum",
+                                                "solana": "solana",
+                                            }
+
+                                            # Merge: YAML overrides builtin
+                                            merged = builtin.copy()
+                                            merged.update(aliases or {})
+
+                                            # prefer explicit alias if it exists in config and is available
+                                            candidate = merged.get(slug)
+                                            avail = _CONFIG.get_available_networks()
+                                            if candidate and candidate in avail:
+                                                return candidate
+
+                                            # otherwise, if slug itself matches a network key, return it
+                                            if slug in avail:
+                                                return slug
+
+                                            # as a last resort, try simplified slug (strip suffixes)
+                                            simple = slug.split("-")[0]
+                                            if simple in avail:
+                                                return simple
+
+                                            # fallback to mapped alias even if not in available networks
+                                            if candidate:
+                                                return candidate
+
+                                            # final fallback to original slug
+                                            return slug
+
+                                        mapped_network = _platform_to_network(platform)
+                                    except Exception:
+                                        mapped_network = platform
+
+                                    # persist mapping with mapped network name (or platform slug)
+                                    try:
+                                        from src.database.manager import get_db_manager
+                                        from src.database.models import PriceMapping
+                                        dbm = get_db_manager()
+                                        with dbm.session_context() as session:
+                                            pm = PriceMapping(symbol=None, network=mapped_network, contract_address=symbol.lower(), coingecko_id=cg_id, source="coin_gecko_contract")
+                                            session.add(pm)
+                                    except Exception:
+                                        pass
+                                break
+                        except Exception:
+                            # try next platform
+                            continue
                 except Exception:
                     cg_id = None
     if not cg_id:

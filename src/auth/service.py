@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any, Tuple
 import logging
 
-from src.auth.models import UserModel, APIKeyModel
 from src.auth.security import SecurityService
 
 logger = logging.getLogger(__name__)
@@ -33,44 +32,7 @@ class AuthService:
         Returns:
             User info dict
         """
-        try:
-            with self.db_manager.session_context() as session:
-                # Check if email exists
-                existing_email = session.query(UserModel).filter_by(email=email).first()
-                if existing_email:
-                    raise ValueError("Email already registered")
-                
-                # Check if username exists
-                existing_username = session.query(UserModel).filter_by(username=username).first()
-                if existing_username:
-                    raise ValueError("Username already taken")
-                
-                # Hash password
-                hashed_pwd = SecurityService.hash_password(password)
-                
-                # Create user
-                user = UserModel(
-                    email=email,
-                    username=username,
-                    hashed_password=hashed_pwd
-                )
-                session.add(user)
-                session.flush()
-                
-                logger.info(f"✅ User registered: {username}")
-                
-                return {
-                    "id": user.id,
-                    "email": user.email,
-                    "username": user.username,
-                    "created_at": user.created_at.isoformat()
-                }
-        except ValueError as e:
-            logger.error(f"Registration error: {str(e)}")
-            raise
-        except Exception as e:
-            logger.error(f"❌ Error registering user: {str(e)}")
-            raise
+        raise NotImplementedError("DB-backed user registration is disabled in single-user mode")
 
     def authenticate_user(self, email: str, password: str) -> Optional[Dict[str, Any]]:
         """
@@ -83,47 +45,7 @@ class AuthService:
         Returns:
             Dict with access_token, refresh_token, user_info or None
         """
-        try:
-            with self.db_manager.session_context() as session:
-                user = session.query(UserModel).filter_by(email=email).first()
-                
-                if not user or not SecurityService.verify_password(password, user.hashed_password):
-                    logger.warning(f"Failed login attempt for {email}")
-                    return None
-                
-                if not user.is_active:
-                    logger.warning(f"Inactive user login attempt: {email}")
-                    return None
-                
-                # Create tokens
-                access_token = SecurityService.create_access_token({
-                    "sub": user.email,
-                    "user_id": user.id,
-                    "username": user.username,
-                    "type": "access"
-                })
-                
-                refresh_token = SecurityService.create_refresh_token({
-                    "sub": user.email,
-                    "user_id": user.id,
-                    "type": "refresh"
-                })
-                
-                logger.info(f"✅ User authenticated: {user.username}")
-                
-                return {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                    "token_type": "bearer",
-                    "user": {
-                        "id": user.id,
-                        "email": user.email,
-                        "username": user.username
-                    }
-                }
-        except Exception as e:
-            logger.error(f"❌ Error authenticating user: {str(e)}")
-            return None
+        raise NotImplementedError("DB-backed authentication is disabled in single-user mode")
 
     def refresh_access_token(self, refresh_token: str) -> Optional[str]:
         """
@@ -135,35 +57,7 @@ class AuthService:
         Returns:
             New access token or None
         """
-        try:
-            payload = SecurityService.verify_token(refresh_token)
-            
-            if not payload or payload.get("type") != "refresh":
-                logger.warning("Invalid refresh token")
-                return None
-            
-            user_id = payload.get("user_id")
-            
-            with self.db_manager.session_context() as session:
-                user = session.query(UserModel).filter_by(id=user_id).first()
-                
-                if not user or not user.is_active:
-                    logger.warning(f"Refresh token for invalid user: {user_id}")
-                    return None
-                
-                # Create new access token
-                access_token = SecurityService.create_access_token({
-                    "sub": user.email,
-                    "user_id": user.id,
-                    "username": user.username,
-                    "type": "access"
-                })
-                
-                logger.info(f"✅ Token refreshed for user: {user.username}")
-                return access_token
-        except Exception as e:
-            logger.error(f"❌ Error refreshing token: {str(e)}")
-            return None
+        raise NotImplementedError("DB-backed token refresh is disabled in single-user mode")
 
     def create_api_key(self, user_id: int, name: str) -> Dict[str, str]:
         """
@@ -176,32 +70,7 @@ class AuthService:
         Returns:
             Dict with key and secret
         """
-        try:
-            with self.db_manager.session_context() as session:
-                user = session.query(UserModel).filter_by(id=user_id).first()
-                if not user:
-                    raise ValueError("User not found")
-                
-                api_key = APIKeyModel(
-                    user_id=user_id,
-                    key=APIKeyModel.generate_key(),
-                    secret=APIKeyModel.generate_secret(),
-                    name=name
-                )
-                session.add(api_key)
-                session.flush()
-                
-                logger.info(f"✅ API key created for user {user.username}: {name}")
-                
-                return {
-                    "key": api_key.key,
-                    "secret": api_key.secret,
-                    "name": api_key.name,
-                    "created_at": api_key.created_at.isoformat()
-                }
-        except Exception as e:
-            logger.error(f"❌ Error creating API key: {str(e)}")
-            raise
+        raise NotImplementedError("DB-backed API key creation is disabled in single-user mode")
 
     def verify_api_key(self, key: str, secret: str) -> Optional[int]:
         """
@@ -214,46 +83,124 @@ class AuthService:
         Returns:
             User ID or None
         """
-        try:
-            with self.db_manager.session_context() as session:
-                api_key = session.query(APIKeyModel).filter_by(key=key).first()
-                
-                if not api_key or not api_key.is_active:
-                    logger.warning(f"Invalid API key: {key[:10]}...")
-                    return None
-                
-                if api_key.secret != secret:
-                    logger.warning(f"Invalid API secret for key: {key[:10]}...")
-                    return None
-                
-                # Update last_used
-                from src.utils.time import now_utc
-                api_key.last_used = now_utc()
-                session.flush()
-                
-                logger.info(f"✅ API key verified for user: {api_key.user_id}")
-                return api_key.user_id
-        except Exception as e:
-            logger.error(f"❌ Error verifying API key: {str(e)}")
-            return None
+        raise NotImplementedError("DB-backed API key verification is disabled in single-user mode")
 
     def get_user_api_keys(self, user_id: int) -> list:
         """Get user's API keys"""
+        raise NotImplementedError("DB-backed API key listing is disabled in single-user mode")
+
+
+class SingleUserAuthService:
+    """
+    Single-user authentication service that validates credentials
+    against environment variables (.env) instead of the database.
+    """
+
+    def __init__(self):
+        from os import getenv
+        self.admin_email = getenv("ADMIN_EMAIL")
+        self.admin_username = getenv("ADMIN_USERNAME")
+        # Prefer hashed password in env; support plain password for convenience
+        self.admin_password_hash = getenv("ADMIN_PASSWORD_HASH")
+        self.admin_password = getenv("ADMIN_PASSWORD")
+        # Optional API key/secret single-user pair
+        self.admin_api_key = getenv("ADMIN_API_KEY")
+        self.admin_api_secret = getenv("ADMIN_API_SECRET")
+
+    def authenticate_user(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+        """
+        Authenticate against the single admin credentials stored in env.
+        Returns token dict on success or None.
+        """
         try:
-            with self.db_manager.session_context() as session:
-                keys = session.query(APIKeyModel).filter_by(user_id=user_id).all()
-                
-                return [
-                    {
-                        "id": k.id,
-                        "name": k.name,
-                        "key": k.key[:10] + "...",  # Mask key
-                        "is_active": k.is_active,
-                        "created_at": k.created_at.isoformat(),
-                        "last_used": k.last_used.isoformat() if k.last_used else None
-                    }
-                    for k in keys
-                ]
+            if not self.admin_email:
+                logger.warning("Single-user admin email not configured")
+                return None
+
+            if email != self.admin_email:
+                logger.warning(f"Failed login attempt for {email}")
+                return None
+
+            # Verify using hash if provided, otherwise compare plain
+            if self.admin_password_hash:
+                if not SecurityService.verify_password(password, self.admin_password_hash):
+                    logger.warning(f"Failed login attempt for {email}")
+                    return None
+            else:
+                if self.admin_password is None or password != self.admin_password:
+                    logger.warning(f"Failed login attempt for {email}")
+                    return None
+
+            # Build tokens similar to multi-user service; use user_id 0
+            access_token = SecurityService.create_access_token({
+                "sub": self.admin_email,
+                "user_id": 0,
+                "username": self.admin_username or "admin",
+                "type": "access"
+            })
+
+            refresh_token = SecurityService.create_refresh_token({
+                "sub": self.admin_email,
+                "user_id": 0,
+                "type": "refresh"
+            })
+
+            logger.info(f"✅ Single-user authenticated: {self.admin_username}")
+
+            return {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+                "user": {
+                    "id": 0,
+                    "email": self.admin_email,
+                    "username": self.admin_username or "admin"
+                }
+            }
         except Exception as e:
-            logger.error(f"❌ Error getting API keys: {str(e)}")
-            return []
+            logger.error(f"❌ Error authenticating single-user: {str(e)}")
+            return None
+
+    def refresh_access_token(self, refresh_token: str) -> Optional[str]:
+        try:
+            payload = SecurityService.verify_token(refresh_token)
+            if not payload or payload.get("type") != "refresh":
+                logger.warning("Invalid refresh token")
+                return None
+
+            # No DB lookup needed - re-issue new access token
+            access_token = SecurityService.create_access_token({
+                "sub": payload.get("sub"),
+                "user_id": payload.get("user_id", 0),
+                "username": payload.get("username", self.admin_username or "admin"),
+                "type": "access"
+            })
+            logger.info("✅ Single-user token refreshed")
+            return access_token
+        except Exception as e:
+            logger.error(f"❌ Error refreshing single-user token: {str(e)}")
+            return None
+
+    def create_api_key(self, user_id: int, name: str) -> Dict[str, str]:
+        # API key management backed by DB is not supported in single-user mode.
+        raise NotImplementedError("API key creation is disabled in single-user mode")
+
+    def verify_api_key(self, key: str, secret: str) -> Optional[int]:
+        """
+        Verify against single ADMIN_API_KEY/ADMIN_API_SECRET if configured.
+        Returns user_id (0) if matches, otherwise None.
+        """
+        try:
+            if self.admin_api_key and self.admin_api_secret:
+                if key == self.admin_api_key and secret == self.admin_api_secret:
+                    logger.info("✅ Single-user API key verified")
+                    return 0
+            logger.warning("Invalid API key/secret in single-user mode")
+            return None
+        except Exception as e:
+            logger.error(f"❌ Error verifying single-user API key: {str(e)}")
+            return None
+
+    def get_user_api_keys(self, user_id: int) -> list:
+        # Not supported in single-user mode
+        return []

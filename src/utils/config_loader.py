@@ -255,6 +255,19 @@ class ConfigLoader:
             Diccionario con config de price fetcher
         """
         return self.config.get("price_fetcher", {})
+
+    def get_platform_aliases(self) -> Dict[str, str]:
+        """
+        Obtiene el mapeo `platform_aliases` desde el YAML de configuración.
+
+        Devuelve un diccionario que mapea slugs de plataforma (p. ej. "polygon-pos")
+        a los nombres de red usados en `config/networks.yaml` (p. ej. "polygon").
+        """
+        pa = self.config.get("platform_aliases", {})
+        if not isinstance(pa, dict):
+            return {}
+        # normalize keys/values to str
+        return {str(k): str(v) for k, v in pa.items()}
     
     def get_portfolio_config(self) -> Dict[str, Any]:
         """

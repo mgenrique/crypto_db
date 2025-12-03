@@ -10,6 +10,7 @@ Orchestrates all connector instances.
 import logging
 import os
 import asyncio
+import time
 from typing import Dict, List, Optional, Any
 from enum import Enum
 from src.api.connectors.tokens.bridged_token_detector import BridgedTokenDetector
@@ -49,6 +50,14 @@ class ConnectorManager:
         self.bridged_detector = BridgedTokenDetector()
         self.wrapped_detector = WrappedTokenDetector()
         self.logger = logging.getLogger("connector.manager")
+        # Background sync control attributes
+        self._bg_task = None
+        self._stop_event = None
+        self._exchange_service = ExchangeService()
+        # Track accounts that recently failed authentication to avoid log spam
+        self._invalid_accounts: Dict[int, Dict[str, Any]] = {}
+        # Cooldown in seconds to skip accounts after auth failure
+        self._invalid_account_cooldown = 60 * 60  # 1 hour
     
     def register_exchange(self, name: str, connector):
         """Register exchange connector"""
@@ -70,10 +79,6 @@ class ConnectorManager:
         self.connectors[f"defi:{name}"] = connector
         self.logger.info(f"✅ Registered DeFi: {name}")
         
-        # background sync control
-        self._bg_task = None
-        self._stop_event = None
-        self._exchange_service = ExchangeService()
     
     def get_connector(self, connector_type: str, name: str):
         """Get connector by type and name"""
@@ -145,6 +150,17 @@ class ConnectorManager:
                     accounts = session.query(ExchangeAccount).filter_by(is_active=True).all()
 
                 for acct in accounts:
+                    # Skip accounts that failed auth recently to reduce noise
+                    invalid_info = self._invalid_accounts.get(acct.id)
+                    if invalid_info:
+                        last_failed = invalid_info.get('last_failed', 0)
+                        if (time.time() - last_failed) < self._invalid_account_cooldown:
+                            self.logger.debug(f"Skipping ExchangeAccount {acct.id} due to recent auth failures")
+                            continue
+                        else:
+                            # cooldown expired
+                            del self._invalid_accounts[acct.id]
+
                     try:
                         api_key = decrypt_value(acct.api_key_encrypted) or ""
                         api_secret = decrypt_value(acct.api_secret_encrypted) or ""
@@ -244,7 +260,20 @@ class ConnectorManager:
                         # small pause between accounts to avoid bursts
                         await asyncio.sleep(0.5)
                     except Exception as e:
-                        self.logger.error(f"Error processing account {acct.id}: {e}")
+                        # Detect authentication-related errors and mark account to skip for a cooldown
+                        msg = str(e).lower()
+                        is_auth_error = False
+                        if (('invalid' in msg and ('api' in msg or 'key' in msg or 'apikey' in msg))
+                                or 'signature' in msg
+                                or '401' in msg
+                                or 'unauthorized' in msg):
+                            is_auth_error = True
+
+                        if is_auth_error:
+                            self._invalid_accounts[acct.id] = {"last_failed": time.time(), "reason": msg}
+                            self.logger.warning(f"🔒 Skipping ExchangeAccount {acct.id} for {self._invalid_account_cooldown}s due to auth error: {e}")
+                        else:
+                            self.logger.error(f"Error processing account {acct.id}: {e}")
 
                 # --- Wallet sync: iterate active blockchain wallets and persist a snapshot
                 try:

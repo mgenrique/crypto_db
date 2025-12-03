@@ -9,12 +9,17 @@ Run with: `python -m scripts.persist_wallet_balances` or `python scripts/persist
 """
 
 import os
+import sys
 import asyncio
 from dotenv import load_dotenv
 
-import src.auth.models  # ensure UserModel is registered before ORM mappers are configured
+# Ensure project root is on sys.path so `from src...` imports work when the
+# script is executed directly from `scripts/`.
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if root not in sys.path:
+    sys.path.insert(0, root)
+
 from src.database import init_database, get_db_manager
-from src.auth.models import UserModel
 from src.database.models import BlockchainWallet, WalletBalance
 from src.utils.time import now_utc
 from src.api.connectors.wallets.metamask_connector import MetamaskConnector
@@ -141,15 +146,12 @@ async def main():
     init_database()
     dbm = get_db_manager()
 
-    # Ensure a system user exists to own imported blockchain wallets
-    system_user_email = os.getenv('WALLET_SYNC_USER_EMAIL', 'wallet-sync@localhost')
-    with dbm.session_context() as session:
-        sys_user = session.query(UserModel).filter_by(email=system_user_email).first()
-        if not sys_user:
-            sys_user = UserModel(email=system_user_email, username='walletsync', hashed_password='x')
-            session.add(sys_user)
-            session.flush()
-        system_user_id = sys_user.id
+    # Determine owner id for imported blockchain wallets. In single-user mode
+    # there is no `users` table; use a fixed owner id from env (default 0).
+    try:
+        system_user_id = int(os.getenv('WALLET_SYNC_USER_ID', '0'))
+    except Exception:
+        system_user_id = 0
 
     tasks = []
 

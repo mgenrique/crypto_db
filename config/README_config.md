@@ -143,3 +143,25 @@ python -m pytest tests/test_binance_integration.py -q
 ---
 
 If you'd like, I can also add an example `docker-compose` service for running a worker-only background sync separated from the API process.
+
+### Single-user authentication (ENV)
+
+This project can run in "single-user" mode where authentication and API
+keys are configured from environment variables instead of being persisted
+in the database.
+
+Set the following variables in your `.env` to enable single-user auth:
+
+- `ADMIN_EMAIL` – admin email used to login (required for single-user mode)
+- `ADMIN_USERNAME` – admin username (optional)
+- `ADMIN_PASSWORD` – plain password (convenient for local testing)
+- `ADMIN_PASSWORD_HASH` – preferred: bcrypt hash of the password (use instead of `ADMIN_PASSWORD`)
+- `ADMIN_API_KEY` / `ADMIN_API_SECRET` – optional single API key pair
+- `WALLET_SYNC_USER_ID` – integer owner id for imported wallets (default `0`)
+
+Notes:
+
+- If `ADMIN_PASSWORD_HASH` is set, the server will verify passwords against
+  the hash. Otherwise `ADMIN_PASSWORD` will be compared in plaintext.
+- For production, prefer `ADMIN_PASSWORD_HASH` and keep `.env` secure.
+- To run tests that exercise DB registration, use `ALLOW_REGISTRATION=true` (opt-in).
