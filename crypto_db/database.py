@@ -18,7 +18,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///crypto_db.sqlite")
 engine = create_engine(
     DATABASE_URL,
     echo=False,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
 )
 
 # Create session factory
@@ -43,5 +43,11 @@ def init_db():
     """
     Initialize database - create all tables
     """
-    from crypto_db.models import Platform, CryptoTransaction, FiatDeposit, TaxReport
+    from crypto_db.models import (  # noqa: F401
+        Platform,
+        CryptoTransaction,
+        FiatDeposit,
+        TaxReport,
+    )
+
     Base.metadata.create_all(bind=engine)

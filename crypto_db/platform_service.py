@@ -12,23 +12,16 @@ class PlatformService:
     """Service for managing trading platforms"""
 
     @staticmethod
-    def create_platform(
-        db: Session,
-        name: str,
-        description: Optional[str] = None
-    ) -> Platform:
+    def create_platform(db: Session, name: str, description: Optional[str] = None) -> Platform:
         """
         Create a new platform
         """
-        platform = Platform(
-            name=name,
-            description=description
-        )
-        
+        platform = Platform(name=name, description=description)
+
         db.add(platform)
         db.commit()
         db.refresh(platform)
-        
+
         return platform
 
     @staticmethod
@@ -54,25 +47,22 @@ class PlatformService:
 
     @staticmethod
     def update_platform(
-        db: Session,
-        platform_id: int,
-        name: Optional[str] = None,
-        description: Optional[str] = None
+        db: Session, platform_id: int, name: Optional[str] = None, description: Optional[str] = None
     ) -> Optional[Platform]:
         """
         Update platform details
         """
         platform = db.query(Platform).filter(Platform.id == platform_id).first()
-        
+
         if platform:
             if name:
                 platform.name = name
             if description is not None:
                 platform.description = description
-            
+
             db.commit()
             db.refresh(platform)
-        
+
         return platform
 
     @staticmethod
@@ -81,14 +71,14 @@ class PlatformService:
         Delete a platform (only if no transactions exist)
         """
         platform = db.query(Platform).filter(Platform.id == platform_id).first()
-        
+
         if platform:
             # Check if platform has transactions
             if platform.crypto_transactions or platform.fiat_deposits:
                 return False
-            
+
             db.delete(platform)
             db.commit()
             return True
-        
+
         return False

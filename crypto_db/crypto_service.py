@@ -7,8 +7,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 
-from crypto_db.models import CryptoTransaction, TransactionType, Platform
-from crypto_db.price_service import get_current_price
+from crypto_db.models import CryptoTransaction, TransactionType
 
 
 class CryptoTransactionService:
@@ -27,16 +26,16 @@ class CryptoTransactionService:
         fee_currency: str = "EUR",
         transaction_date: Optional[datetime] = None,
         transaction_id: Optional[str] = None,
-        notes: Optional[str] = None
+        notes: Optional[str] = None,
     ) -> CryptoTransaction:
         """
         Create a new cryptocurrency transaction
         """
         if transaction_date is None:
             transaction_date = datetime.utcnow()
-        
+
         total_value = amount * price_per_unit
-        
+
         transaction = CryptoTransaction(
             platform_id=platform_id,
             transaction_type=transaction_type,
@@ -49,13 +48,13 @@ class CryptoTransactionService:
             fee_currency=fee_currency,
             transaction_date=transaction_date,
             transaction_id=transaction_id,
-            notes=notes
+            notes=notes,
         )
-        
+
         db.add(transaction)
         db.commit()
         db.refresh(transaction)
-        
+
         return transaction
 
     @staticmethod
@@ -65,13 +64,13 @@ class CryptoTransactionService:
         cryptocurrency: Optional[str] = None,
         transaction_type: Optional[TransactionType] = None,
         start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        end_date: Optional[datetime] = None,
     ) -> List[CryptoTransaction]:
         """
         Get transactions with optional filtering
         """
         query = db.query(CryptoTransaction)
-        
+
         if platform_id:
             query = query.filter(CryptoTransaction.platform_id == platform_id)
         if cryptocurrency:
@@ -82,7 +81,7 @@ class CryptoTransactionService:
             query = query.filter(CryptoTransaction.transaction_date >= start_date)
         if end_date:
             query = query.filter(CryptoTransaction.transaction_date <= end_date)
-        
+
         return query.order_by(CryptoTransaction.transaction_date.desc()).all()
 
     @staticmethod
@@ -94,64 +93,70 @@ class CryptoTransactionService:
             CryptoTransaction.cryptocurrency,
             func.sum(
                 case(
-                    (CryptoTransaction.transaction_type.in_([
-                        TransactionType.BUY,
-                        TransactionType.TRANSFER_IN,
-                        TransactionType.REWARD,
-                        TransactionType.STAKE
-                    ]), CryptoTransaction.amount),
-                    (CryptoTransaction.transaction_type.in_([
-                        TransactionType.SELL,
-                        TransactionType.TRANSFER_OUT,
-                        TransactionType.FEE,
-                        TransactionType.UNSTAKE
-                    ]), -CryptoTransaction.amount),
-                    else_=0
+                    (
+                        CryptoTransaction.transaction_type.in_(
+                            [
+                                TransactionType.BUY,
+                                TransactionType.TRANSFER_IN,
+                                TransactionType.REWARD,
+                                TransactionType.STAKE,
+                            ]
+                        ),
+                        CryptoTransaction.amount,
+                    ),
+                    (
+                        CryptoTransaction.transaction_type.in_(
+                            [
+                                TransactionType.SELL,
+                                TransactionType.TRANSFER_OUT,
+                                TransactionType.FEE,
+                                TransactionType.UNSTAKE,
+                            ]
+                        ),
+                        -CryptoTransaction.amount,
+                    ),
+                    else_=0,
                 )
-            ).label('balance')
+            ).label("balance"),
         ).group_by(CryptoTransaction.cryptocurrency)
-        
+
         if cryptocurrency:
             query = query.filter(CryptoTransaction.cryptocurrency == cryptocurrency.upper())
-        
+
         results = query.all()
-        
+
         return {crypto: float(balance) for crypto, balance in results if balance > 0}
 
     @staticmethod
     def get_transaction_summary(
-        db: Session,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        db: Session, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
     ) -> dict:
         """
         Get summary of transactions for a period
         """
         query = db.query(CryptoTransaction)
-        
+
         if start_date:
             query = query.filter(CryptoTransaction.transaction_date >= start_date)
         if end_date:
             query = query.filter(CryptoTransaction.transaction_date <= end_date)
-        
+
         transactions = query.all()
-        
+
         total_invested = sum(
-            t.total_value for t in transactions
-            if t.transaction_type in [TransactionType.BUY]
+            t.total_value for t in transactions if t.transaction_type in [TransactionType.BUY]
         )
-        
+
         total_sold = sum(
-            t.total_value for t in transactions
-            if t.transaction_type in [TransactionType.SELL]
+            t.total_value for t in transactions if t.transaction_type in [TransactionType.SELL]
         )
-        
+
         total_fees = sum(t.fee_amount for t in transactions)
-        
+
         return {
             "total_transactions": len(transactions),
             "total_invested": total_invested,
             "total_sold": total_sold,
             "total_fees": total_fees,
-            "net_position": total_invested - total_sold - total_fees
+            "net_position": total_invested - total_sold - total_fees,
         }

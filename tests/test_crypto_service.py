@@ -23,9 +23,9 @@ def test_create_crypto_transaction(db_session, test_platform):
         amount=0.5,
         price_per_unit=45000.0,
         fiat_currency="EUR",
-        fee_amount=50.0
+        fee_amount=50.0,
     )
-    
+
     assert transaction.id is not None
     assert transaction.cryptocurrency == "BTC"
     assert transaction.amount == 0.5
@@ -42,24 +42,22 @@ def test_get_transactions(db_session, test_platform):
         transaction_type=TransactionType.BUY,
         cryptocurrency="BTC",
         amount=1.0,
-        price_per_unit=40000.0
+        price_per_unit=40000.0,
     )
-    
+
     CryptoTransactionService.create_transaction(
         db=db_session,
         platform_id=test_platform.id,
         transaction_type=TransactionType.BUY,
         cryptocurrency="ETH",
         amount=10.0,
-        price_per_unit=2500.0
+        price_per_unit=2500.0,
     )
-    
+
     all_transactions = CryptoTransactionService.get_transactions(db_session)
     assert len(all_transactions) == 2
-    
-    btc_transactions = CryptoTransactionService.get_transactions(
-        db_session, cryptocurrency="BTC"
-    )
+
+    btc_transactions = CryptoTransactionService.get_transactions(db_session, cryptocurrency="BTC")
     assert len(btc_transactions) == 1
     assert btc_transactions[0].cryptocurrency == "BTC"
 
@@ -73,9 +71,9 @@ def test_get_portfolio_balance(db_session, test_platform):
         transaction_type=TransactionType.BUY,
         cryptocurrency="BTC",
         amount=1.0,
-        price_per_unit=40000.0
+        price_per_unit=40000.0,
     )
-    
+
     # Sell some BTC
     CryptoTransactionService.create_transaction(
         db=db_session,
@@ -83,9 +81,9 @@ def test_get_portfolio_balance(db_session, test_platform):
         transaction_type=TransactionType.SELL,
         cryptocurrency="BTC",
         amount=0.3,
-        price_per_unit=45000.0
+        price_per_unit=45000.0,
     )
-    
+
     # Buy ETH
     CryptoTransactionService.create_transaction(
         db=db_session,
@@ -93,11 +91,11 @@ def test_get_portfolio_balance(db_session, test_platform):
         transaction_type=TransactionType.BUY,
         cryptocurrency="ETH",
         amount=10.0,
-        price_per_unit=2500.0
+        price_per_unit=2500.0,
     )
-    
+
     balance = CryptoTransactionService.get_portfolio_balance(db_session)
-    
+
     assert "BTC" in balance
     assert balance["BTC"] == 0.7
     assert "ETH" in balance
@@ -113,9 +111,9 @@ def test_get_transaction_summary(db_session, test_platform):
         cryptocurrency="BTC",
         amount=1.0,
         price_per_unit=40000.0,
-        fee_amount=100.0
+        fee_amount=100.0,
     )
-    
+
     CryptoTransactionService.create_transaction(
         db=db_session,
         platform_id=test_platform.id,
@@ -123,11 +121,11 @@ def test_get_transaction_summary(db_session, test_platform):
         cryptocurrency="BTC",
         amount=0.5,
         price_per_unit=50000.0,
-        fee_amount=50.0
+        fee_amount=50.0,
     )
-    
+
     summary = CryptoTransactionService.get_transaction_summary(db_session)
-    
+
     assert summary["total_transactions"] == 2
     assert summary["total_invested"] == 40000.0
     assert summary["total_sold"] == 25000.0
