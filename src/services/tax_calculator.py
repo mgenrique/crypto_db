@@ -8,8 +8,9 @@ Implements FIFO, LIFO, and Average Cost methods.
 
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from datetime import datetime
-from typing import List, Dict, Any, Tuple
+from datetime import datetime, timezone
+from src.utils.time import now_utc
+from typing import List, Dict, Any, Tuple, Optional
 import logging
 
 from src.database.models import (
@@ -386,7 +387,7 @@ class TaxCalculator:
                         for method, data in by_method.items()
                     },
                     "estimated_tax_usd": str(total_gain_loss * Decimal("0.21")),
-                    "generated_at": datetime.utcnow().isoformat()
+                    "generated_at": now_utc().isoformat()
                 }
         except Exception as e:
             logger.error(f"❌ Error getting annual summary: {str(e)}")

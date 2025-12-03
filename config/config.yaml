@@ -13,6 +13,15 @@ database:
   pool_size: 5
   max_overflow: 10
   # En producción: PostgreSQL
+
+# ============================================================================
+# APPLICATION / RUNTIME
+# ============================================================================
+# Environment for the application lifecycle. Use values like `development`,
+# `staging`, or `production`.
+app:
+  env: development
+
   # type: postgresql
   # host: localhost
   # port: 5432
@@ -131,6 +140,8 @@ portfolio:
   auto_refresh: true
   refresh_interval: 300  # segundos
   decimal_places: 8
+  # Fiat currency used for tax reporting and valuations (ISO 4217)
+  fiat_currency: EUR
 
 # ============================================================================
 # FEATURES
@@ -143,3 +154,47 @@ features:
   transaction_history: true
   report_generation: true
   performance_analytics: true
+
+# ============================================================================
+# SECURITY / AUTH
+# ============================================================================
+# Optional centralized security settings. Sensitive values should be set in .env
+security:
+  # Can be overridden via env: SECRET_KEY
+  secret_key: ${SECRET_KEY}
+  access_token_expire_minutes: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+  refresh_token_expire_days: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+
+# ============================================================================
+# CONNECTORS / PROVIDERS
+# ============================================================================
+connectors:
+  # Provider API keys used by some blockchain connectors (Alchemy/Infura/etc.)
+  alchemy_api_key: ${ALCHEMY_API_KEY}
+  infura_project_id: ${INFURA_PROJECT_ID}
+  infura_project_secret: ${INFURA_PROJECT_SECRET}
+  
+  # Background sync controls for connectors. When enabled, the app will
+  # periodically poll user-registered exchange accounts (balances, trades,
+  # deposits, withdrawals) and persist results to the database. For local
+  # development and testing you may want to disable this.
+  background_sync:
+    enabled: true            # Set to false to disable automatic background sync
+    interval_seconds: 300    # Polling interval in seconds (default: 300)
+
+# ============================================================================
+# INTEGRATIONS
+# ============================================================================
+integrations:
+  # Sentry DSN for error tracking (optional)
+  sentry_dsn: ${SENTRY_DSN}
+
+  # Redis / cache backend (optional)
+  redis_url: ${REDIS_URL}
+
+  # Email / SMTP settings (optional)
+  smtp:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    user: ${SMTP_USER}
+    password: ${SMTP_PASSWORD}

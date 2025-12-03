@@ -6,7 +6,8 @@ Dependency injection for authentication.
 """
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials
 from typing import Optional
 import logging
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 
-async def get_current_user(credentials: HTTPAuthCredentials = Depends(security)) -> dict:
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     """
     Get current user from JWT token
     
@@ -53,7 +54,7 @@ async def get_current_user(credentials: HTTPAuthCredentials = Depends(security))
 
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthCredentials] = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> Optional[dict]:
     """Get current user if authenticated, otherwise None"""
     if not credentials:

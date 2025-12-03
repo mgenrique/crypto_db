@@ -35,19 +35,22 @@ Un sistema completo de monitoreo de portfolio cryptocurrency multi-wallet, multi
 ## 📊 Arquitectura
 
 ### Base de Datos
-- **13 tablas SQL** (9 base + 4 DeFi)
-- **10+ índices** optimizados
-- SQLite con soporte para PRAGMA foreign_keys
-- Migraciones automáticas
+- Uses SQLite by default for local development (engine configurable to PostgreSQL).
+- On each SQLite connection the app enables `PRAGMA foreign_keys=ON` for referential integrity.
+- Alembic is included for migrations; a lightweight baseline is stamped when starting locally.
 
-### Estructura de Código
-```
-src/
-├── database/      (modelos, gestión BD, schema)
-├── api/           (conectores: exchanges, blockchain, DeFi)
-├── utils/         (configuración, validación, logging)
-└── services/      (portfolio, impuestos, reportes)
-```
+### Estructura de Código (resumen)
+```text
+cli.py                # CLI entrypoints and utilities
+main.py               # FastAPI app, startup/shutdown wiring
+src/                  # Application package
+	api/                 # Routers and connector implementations
+	auth/                # Authentication and models
+	database/            # SQLAlchemy models, manager, migrations
+	services/            # Business logic (ExchangeService, portfolio, tax)
+	utils/               # Config loader, crypto helpers, logger
+tests/                 # Unit and integration tests
+``` 
 
 ### Conectores Disponibles
 - **Exchanges**: Binance, Coinbase, Kraken
@@ -95,88 +98,69 @@ nano .env  # o usar tu editor favorito
 
 ### 4. Inicializar Base de Datos
 ```bash
-python scripts/init_database.py
+# Create the DB and tables using the app utility
+python -c "from src.database.manager import init_database; init_database()"
+
+# Or run Alembic migrations (recommended for production)
+alembic upgrade head
 ```
 
 ### 5. Verificar Instalación
 ```bash
-python -c "from src.database.db_manager import DatabaseManager; print('✅ OK')"
+# Quick import check
+python -c "import src; print('IMPORT_OK')"
+
+# Run tests
+python -m pytest -q
 ```
 
 ## 📚 Documentación
 
-- **PROYECTO_COMPLETO_v3.md** - Guía exhaustiva del proyecto
-- **ACTUALIZACION_3_DEFI.md** - Cambios y características DeFi
-- **ARQUITECTURA_BD.md** - Diseño detallado de la base de datos
-- **API_REFERENCE.md** - Referencia completa de API
+See `config/config.yaml` for runtime configuration and `config/README_config.md` for examples.
 
 ## 💻 Uso Básico
 
 ### Inicializar Database Manager
 ```python
-from src.database.db_manager import DatabaseManager
+```python
+from src.utils.config_loader import ConfigLoader
+from src.database.manager import get_db_manager, init_database
 
-# Crear instancia
-db = DatabaseManager(db_path="./data/crypto_portfolio.db")
-
-# Conectar
-db.connect()
-
-# Inicializar (si es primera vez)
-db.initialize_database()
+cfg = ConfigLoader()
+dbm = get_db_manager()
+# Create tables (dev only)
+init_database()
 ```
 
 ### Usar Conectores DeFi
 ```python
-from src.api.defi_connectors import DeFiConnectorFactory
+```python
+# Example: instantiate a Binance connector and fetch balances
+from src.api.connectors.exchanges.binance_connector import BinanceConnector
 
-# Obtener conector Uniswap V3
-uv3 = DeFiConnectorFactory.get_connector("uniswap_v3", network="ethereum")
-
-# Obtener posiciones del usuario
-positions = uv3.fetch_user_positions("0xYourWalletAddress")
-
-# Obtener conector Aave V3
-aave = DeFiConnectorFactory.get_connector("aave_v3", network="ethereum")
-
-# Obtener cuenta del usuario
-account = aave.fetch_user_account("0xYourWalletAddress")
+client = BinanceConnector(api_key='KEY', api_secret='SECRET')
+balances = client.get_balance()
 ```
 
 ### Gestionar Portfolio
 ```python
+```python
+# Use services to query/persist portfolio state
 from src.services.portfolio_service import PortfolioService
-
-# Crear servicio
-portfolio = PortfolioService(db)
-
-# Agregar wallet
-portfolio.add_wallet(wallet_type="metamask", network="ethereum", address="0x...")
-
-# Sincronizar datos
-portfolio.sync_all_wallets()
-
-# Obtener resumen
-summary = portfolio.get_portfolio_summary()
+svc = PortfolioService()
+svc.recalculate_for_user(user_id=1)
 ```
 
 ## 🔧 Configuración
 
 ### config.yaml
 ```yaml
-database:
-  path: ./data/crypto_portfolio.db
-  timeout: 30
-
-logging:
-  level: INFO
-  file: ./logs/crypto_tracker.log
-
-networks:
-  ethereum:
-    chain_id: 1
-    name: "Ethereum Mainnet"
-    rpc_url: "https://eth-mainnet.alchemyapi.io/v2/YOUR_KEY"
+```yaml
+# See `config/config.yaml` for a full example. Relevant connector section:
+connectors:
+	background_sync:
+		enabled: true
+		interval_seconds: 300
 ```
 
 ### .env.example
@@ -188,10 +172,7 @@ Contiene placeholders para:
 
 ## 📊 Scripts de Utilidad
 
-- **init_database.py** - Inicializar/resetear BD
-- **sync_wallets.py** - Sincronizar todas las wallets
-- **fetch_prices.py** - Obtener precios actualizados
-- **generate_report.py** - Generar reportes
+
 
 ## 🗄️ Base de Datos
 
@@ -206,67 +187,11 @@ Contiene placeholders para:
 - **aave_markets** - Markets de Aave
 - **aave_user_positions** - Posiciones de usuarios en Aave
 
-## ✅ Checklist de Instalación
 
-- [ ] Python 3.9+ instalado
-- [ ] Entorno virtual creado y activado
-- [ ] Dependencias instaladas: `pip install -r requirements.txt`
-- [ ] .env configurado con credenciales
-- [ ] BD inicializada: `python scripts/init_database.py`
-- [ ] 13 tablas creadas correctamente
-- [ ] Imports funcionan sin errores
 
-## 📞 Soporte & Troubleshooting
 
-### Error: "No module named 'src'"
-```bash
-# Asegúrate que estás en el directorio correcto
-cd crypto_tracker_v3
 
-# Verifica que PYTHONPATH es correcto
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-```
 
-### Error: "Table 'defi_pools' doesn't exist"
-```bash
-# Reinicializar la BD
-python scripts/init_database.py --reset --verbose
-```
-
-### Error: "ImportError: cannot import name 'DefiProtocol'"
-- Verifica que `src/database/models.py` está actualizado
-- Ejecuta `pip install -r requirements.txt` nuevamente
-
-## 🚀 Próximos Pasos
-
-### Fase Actual (v3.0)
-- ✅ Estructura completa del proyecto
-- ✅ Modelos de datos y enums DeFi
-- ✅ Manager de BD con 13 tablas
-- ✅ Conectores base (stubs)
-- ✅ Configuración YAML
-
-### Próximas Fases
-- [ ] Implementar métodos concretos en conectores (APIs/Web3)
-- [ ] Agregar más protocolos DeFi (Curve, Balancer, SushiSwap)
-- [ ] Dashboard web (Streamlit/Dash)
-- [ ] Automatización con scheduler
-- [ ] Exportar reportes PDF
-- [ ] Alertas y notificaciones
-
-## 📈 Estadísticas del Proyecto
-
-| Métrica | Valor |
-|---------|-------|
-| Líneas de Código | 7,000+ |
-| Archivos Python | 24 |
-| Tablas BD | 13 |
-| Conectores API | 8+ |
-| Blockchains | 8+ |
-| Tokens | 27+ |
-| Tipos de Transacción | 24+ |
-| Enums | 10+ |
-| Dataclasses | 20+ |
 
 ## 📄 Licencia
 
@@ -278,8 +203,4 @@ Crypto Portfolio Tracker v3 - 2025
 
 ---
 
-**¿Necesitas ayuda?** Consulta la documentación en `docs/` o revisa los comentarios en el código.
 
-**¿Quieres extender?** La arquitectura está diseñada para ser modular y escalable.
-
-**¿Encontraste un bug?** Verifica los logs en `logs/crypto_tracker.log`

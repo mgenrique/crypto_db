@@ -9,6 +9,19 @@ PRAGMA foreign_keys = ON;
 PRAGMA journal_mode = WAL;
 PRAGMA synchronous = NORMAL;
 
+-- Tabla: users
+-- Usuarios registrados en la aplicación
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    username TEXT NOT NULL UNIQUE,
+    hashed_password TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT 1,
+    is_admin BOOLEAN DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================================================================
 -- TABLAS BASE (9 tablas)
 -- ============================================================================
@@ -17,6 +30,7 @@ PRAGMA synchronous = NORMAL;
 -- Almacena todas las wallets monitoreadas del usuario
 CREATE TABLE IF NOT EXISTS wallets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,                    -- Owner user id (nullable for public wallets)
     wallet_type TEXT NOT NULL,          -- metamask, phantom, ledger, etc
     network TEXT NOT NULL,              -- ethereum, arbitrum, base, etc
     address TEXT NOT NULL UNIQUE,       -- 0x... address
@@ -27,6 +41,11 @@ CREATE TABLE IF NOT EXISTS wallets (
 
 CREATE INDEX idx_wallets_address ON wallets(address);
 CREATE INDEX idx_wallets_network ON wallets(network);
+
+-- Add foreign key constraint for wallets.user_id referencing users
+PRAGMA foreign_keys = ON;
+-- Note: SQLite requires FK enforcement at connection time; migrations should
+-- include explicit ALTER TABLE statements for existing DBs.
 
 
 -- Tabla: tokens
@@ -154,6 +173,60 @@ CREATE TABLE IF NOT EXISTS raw_api_responses (
     status_code INTEGER,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ttl INTEGER DEFAULT 3600            -- Time to live en segundos
+);
+
+
+-- Tabla: exchange_accounts
+-- Cuentas de exchange por usuario (API keys almacenadas encriptadas)
+CREATE TABLE IF NOT EXISTS exchange_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    exchange TEXT NOT NULL,
+    api_key_encrypted TEXT NOT NULL,
+    api_secret_encrypted TEXT NOT NULL,
+    label TEXT,
+    is_active BOOLEAN DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+-- Tabla: blockchain_wallets
+CREATE TABLE IF NOT EXISTS blockchain_wallets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    address TEXT NOT NULL,
+    network TEXT NOT NULL,
+    wallet_type TEXT NOT NULL,
+    label TEXT,
+    is_active BOOLEAN DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+-- Tabla: wallet_balances
+CREATE TABLE IF NOT EXISTS wallet_balances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    wallet_id INTEGER,
+    token TEXT NOT NULL,
+    balance TEXT NOT NULL,
+    balance_usd TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(wallet_id) REFERENCES blockchain_wallets(id)
+);
+
+-- Tabla: defi_positions (user-owned positions)
+CREATE TABLE IF NOT EXISTS defi_positions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    address TEXT NOT NULL,
+    protocol TEXT NOT NULL,
+    position_type TEXT NOT NULL,
+    token0 TEXT,
+    token1 TEXT,
+    balance0 TEXT,
+    balance1 TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 

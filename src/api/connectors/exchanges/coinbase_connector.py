@@ -17,6 +17,7 @@ try:
     from coinbase.client import Client
 except ImportError:
     Client = None
+from src.services.exchange_service import ExchangeService
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,10 @@ class CoinbaseConnector:
         self.passphrase = passphrase
         self.client = Client(api_key, api_secret, passphrase)
         self.logger = logging.getLogger(f"connector.coinbase.{api_key[:8]}")
+        try:
+            self._exchange_service = ExchangeService()
+        except Exception:
+            self._exchange_service = None
     
     async def validate_connection(self) -> bool:
         """Validate Coinbase connection"""
@@ -52,7 +57,7 @@ class CoinbaseConnector:
             self.logger.error(f"❌ Connection error: {str(e)}")
             return False
     
-    async def get_balance(self) -> Dict[str, Dict[str, Any]]:
+    async def get_balance(self, persist_account_id: Optional[int] = None) -> Dict[str, Dict[str, Any]]:
         """
         Get account balances
         
@@ -79,6 +84,20 @@ class CoinbaseConnector:
                     }
             
             self.logger.info(f"✅ Balance fetched: {len(balances)} assets")
+            if persist_account_id and self._exchange_service:
+                try:
+                    # normalize to same shape as ExchangeService expects
+                    normalized = {}
+                    for cur, data in balances.items():
+                        normalized[cur] = {
+                            "free": data.get("balance"),
+                            "locked": data.get("hold") or "0",
+                            "total": data.get("total") or data.get("balance"),
+                        }
+                    self._exchange_service.persist_balances(persist_account_id, normalized)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist balances: {e}")
+
             return balances
         except Exception as e:
             self.logger.error(f"❌ Error fetching balance: {str(e)}")
@@ -134,3 +153,90 @@ class CoinbaseConnector:
         except Exception as e:
             self.logger.error(f"❌ Error fetching fills: {str(e)}")
             return []
+
+    async def get_trades(self, persist_account_id: Optional[int] = None, product_id: Optional[str] = None, limit: int = 100) -> List[Dict]:
+        """Fetch recent trades/fills and optionally persist them."""
+        try:
+            fills = await self.get_fills(product_id=product_id, limit=limit)
+
+            # Normalize to ExchangeService expectations
+            trades = []
+            for f in fills:
+                try:
+                    ts = f.get('created_at')
+                except Exception:
+                    ts = None
+
+                trades.append({
+                    "id": f.get('id'),
+                    "symbol": f.get('product_id'),
+                    "price": f.get('price'),
+                    "qty": f.get('size'),
+                    "commission": f.get('fee'),
+                    "commissionAsset": None,
+                    "is_buyer": True if f.get('side') == 'buy' else False,
+                    "is_maker": None,
+                    "timestamp": ts
+                })
+
+            if persist_account_id and self._exchange_service:
+                try:
+                    self._exchange_service.persist_trades(persist_account_id, trades)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist trades: {e}")
+
+            return trades
+        except Exception as e:
+            self.logger.error(f"❌ Error fetching trades: {str(e)}")
+            return []
+
+    async def get_deposit_history(self, persist_account_id: Optional[int] = None, limit: int = 200) -> List[Dict]:
+        """Fetch deposit/withdrawal ledger entries and optionally persist as deposits."""
+        try:
+            entries = await self.get_transactions(limit=limit)
+            deposits = []
+            withdrawals = []
+
+            for e in entries:
+                ttype = (e.get('type') or '').lower()
+                details = e.get('details') or {}
+                # Heuristic: Coinbase ledger 'type' or details might indicate deposit/withdrawal
+                if 'deposit' in ttype or details.get('type') == 'deposit':
+                    deposits.append({
+                        "id": e.get('id'),
+                        "coin": e.get('currency') or details.get('currency'),
+                        "amount": e.get('amount'),
+                        "address": details.get('crypto_address') or details.get('address'),
+                        "txid": details.get('transaction_hash') or details.get('hash'),
+                        "network": details.get('network'),
+                        "status": details.get('status') or 'unknown',
+                        "timestamp": e.get('created_at')
+                    })
+                elif 'withdraw' in ttype or details.get('type') == 'withdrawal':
+                    withdrawals.append({
+                        "id": e.get('id'),
+                        "coin": e.get('currency') or details.get('currency'),
+                        "amount": e.get('amount'),
+                        "address": details.get('crypto_address') or details.get('address'),
+                        "txid": details.get('transaction_hash') or details.get('hash'),
+                        "network": details.get('network'),
+                        "status": details.get('status') or 'unknown',
+                        "timestamp": e.get('created_at')
+                    })
+
+            if persist_account_id and self._exchange_service:
+                try:
+                    if deposits:
+                        self._exchange_service.persist_deposits(persist_account_id, deposits)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist deposits: {e}")
+                try:
+                    if withdrawals:
+                        self._exchange_service.persist_withdrawals(persist_account_id, withdrawals)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist withdrawals: {e}")
+
+            return deposits, withdrawals
+        except Exception as e:
+            self.logger.error(f"❌ Error fetching deposit history: {str(e)}")
+            return [], []

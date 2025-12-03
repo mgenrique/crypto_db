@@ -7,7 +7,7 @@ SQLAlchemy database management with connection pooling.
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import NullPool, QueuePool, StaticPool
 from contextlib import contextmanager
 import logging
 import os
@@ -32,13 +32,25 @@ class DatabaseManager:
         
         # Configure pool based on database type
         if "sqlite" in database_url:
-            # SQLite doesn't support connection pooling well
-            self.engine = create_engine(
-                database_url,
-                echo=echo,
-                connect_args={"check_same_thread": False},
-                poolclass=NullPool,
-            )
+            # SQLite in-memory databases need a StaticPool to persist across
+            # connections during the process. For on-disk sqlite files we keep
+            # the existing behavior using NullPool to avoid connection reuse
+            # issues in multi-threaded environments.
+            if ":memory:" in database_url:
+                self.engine = create_engine(
+                    database_url,
+                    echo=echo,
+                    connect_args={"check_same_thread": False},
+                    poolclass=StaticPool,
+                )
+            else:
+                # SQLite file-based DB
+                self.engine = create_engine(
+                    database_url,
+                    echo=echo,
+                    connect_args={"check_same_thread": False},
+                    poolclass=NullPool,
+                )
         else:
             # PostgreSQL with connection pooling
             self.engine = create_engine(
@@ -58,18 +70,53 @@ class DatabaseManager:
         """Initialize SQLAlchemy event listeners"""
         @event.listens_for(self.engine, "connect")
         def set_sqlite_pragma(dbapi_conn, connection_record):
-            """Enable foreign keys for SQLite"""
-            if "sqlite" in self.database_url:
-                cursor = dbapi_conn.cursor()
-                cursor.execute("PRAGMA foreign_keys=ON")
-                cursor.close()
+            """Enable foreign keys for SQLite connections.
+
+            Use the engine dialect to determine SQLite instead of checking
+            the URL string. Execute the PRAGMA on the raw DB-API connection
+            for every new connection so FKs are enforced.
+            """
+            try:
+                dialect_name = self.engine.dialect.name
+            except Exception:
+                dialect_name = None
+
+            if dialect_name == "sqlite":
+                # Some DB-API implementations accept .execute directly on the
+                # connection object, others require a cursor. Use both safely.
+                try:
+                    dbapi_conn.execute("PRAGMA foreign_keys=ON")
+                except Exception:
+                    cur = dbapi_conn.cursor()
+                    cur.execute("PRAGMA foreign_keys=ON")
+                    cur.close()
 
     @staticmethod
     def _mask_url(url: str) -> str:
         """Mask sensitive info in connection string"""
-        if "@" in url:
-            parts = url.split("@")
-            return f"{parts.split(':')}:***@{parts}"
+        try:
+            from urllib.parse import urlparse, urlunparse
+
+            p = urlparse(url)
+            # SQLite URLs have no credentials component; return as-is
+            if p.scheme == "sqlite":
+                return url
+
+            netloc = p.netloc
+            if "@" in netloc:
+                userinfo, host = netloc.rsplit("@", 1)
+                if ":" in userinfo:
+                    user, _pwd = userinfo.split(":", 1)
+                    userinfo = f"{user}:***"
+                else:
+                    userinfo = f"{userinfo}:***"
+                new_netloc = f"{userinfo}@{host}"
+                p2 = p._replace(netloc=new_netloc)
+                return urlunparse(p2)
+        except Exception:
+            # If masking fails for any reason, return the original URL
+            pass
+
         return url
 
     def create_tables(self, base):
@@ -143,8 +190,18 @@ def get_db_manager() -> DatabaseManager:
     if _db_manager is None:
         from src.utils.config_loader import ConfigLoader
         config = ConfigLoader()
-        database_url = config.get("DATABASE_URL", "sqlite:///./portfolio.db")
-        echo = config.get("DATABASE_ECHO", False)
+        # Use YAML database configuration as single source of truth
+        db_cfg = config.get_database_config()
+
+        if db_cfg.get("type") == "sqlite":
+            path = db_cfg.get("path", "./portfolio.db")
+            database_url = path if path.startswith("sqlite:") else f"sqlite:///{path}"
+        else:
+            # Try an explicit URL in YAML, otherwise fall back to sqlite default
+            database_url = db_cfg.get("url") or db_cfg.get("connection_string") or "sqlite:///./portfolio.db"
+
+        echo = bool(db_cfg.get("echo", False))
+
         _db_manager = DatabaseManager(database_url, echo=echo)
     return _db_manager
 

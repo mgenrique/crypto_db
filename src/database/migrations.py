@@ -51,7 +51,13 @@ def run_migrations():
     """Run all pending migrations on startup"""
     from src.utils.config_loader import ConfigLoader
     config = ConfigLoader()
-    database_url = config.get("DATABASE_URL", "sqlite:///./portfolio.db")
+    # Use YAML database configuration as single source of truth
+    db_cfg = config.get_database_config()
+    if db_cfg.get("type") == "sqlite":
+        path = db_cfg.get("path", "./portfolio.db")
+        database_url = path if path.startswith("sqlite:") else f"sqlite:///{path}"
+    else:
+        database_url = db_cfg.get("url") or db_cfg.get("connection_string") or "sqlite:///./portfolio.db"
     
     # Only run migrations for PostgreSQL (SQLite doesn't need them)
     if "postgresql" in database_url:

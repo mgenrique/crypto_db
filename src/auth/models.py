@@ -6,12 +6,12 @@ User and API key models for authentication.
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from src.database.base import Base
+from datetime import datetime, timezone
+from src.utils.time import now_utc
 import secrets
 
-Base = declarative_base()
 
 
 class UserModel(Base):
@@ -24,12 +24,16 @@ class UserModel(Base):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=now_utc, nullable=False)
+    updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
 
     # Relationships
     api_keys = relationship("APIKeyModel", back_populates="user", cascade="all, delete-orphan")
+    # Wallets and exchange accounts owned by the user
     wallets = relationship("WalletModel", back_populates="user", cascade="all, delete-orphan")
+    blockchain_wallets = relationship("BlockchainWallet", back_populates="user", cascade="all, delete-orphan")
+    exchange_accounts = relationship("ExchangeAccount", back_populates="user", cascade="all, delete-orphan")
+    defi_positions = relationship("DeFiPosition", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -45,7 +49,7 @@ class APIKeyModel(Base):
     secret = Column(String(255), nullable=False)
     name = Column(String(100), nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=now_utc, nullable=False)
     last_used = Column(DateTime, nullable=True)
 
     # Relationships

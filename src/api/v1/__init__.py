@@ -46,83 +46,42 @@ Endpoints disponibles:
 """
 
 from .schemas import (
-    WalletTypeEnum,
-    NetworkEnum,
-    TransactionTypeEnum,
-    CostBasisEnum,
-    WalletCreate,
-    WalletUpdate,
-    WalletResponse,
-    BalanceUpdate,
-    BalanceResponse,
-    TransactionCreate,
-    TransactionResponse,
-    PortfolioComposition,
-    PortfolioValue,
-    PortfolioSummary,
-    AssetBreakdown,
-    AssetBreakdownReport,
-    TransactionSummary,
-    TransactionReportResponse,
-    TaxGainLoss,
-    TaxReportResponse,
-    HealthCheck,
-    ErrorResponse,
+    WalletSchema,
+    TransactionSchema,
+    BalanceSchema,
+    PortfolioSummarySchema,
+    TaxReportSchema,
+    ErrorSchema,
 )
 
 from .dependencies import (
-    get_config,
-    get_database,
+    get_db,
     get_portfolio_service,
     get_tax_calculator,
     get_report_generator,
-    validate_api_key,
-    validate_wallet_id,
-    validate_address,
-    validate_token_symbol,
-    get_pagination_params,
-    get_date_range,
 )
 
 from .routes import router
+from .exchanges_routes import router as exchanges_router
+from .auth_routes import router as auth_router
+from .price_mappings_routes import router as price_mappings_router
 
 __all__ = [
-    # Schemas - Enums
-    "WalletTypeEnum",
-    "NetworkEnum",
-    "TransactionTypeEnum",
-    "CostBasisEnum",
-    # Schemas - Models
-    "WalletCreate",
-    "WalletUpdate",
-    "WalletResponse",
-    "BalanceUpdate",
-    "BalanceResponse",
-    "TransactionCreate",
-    "TransactionResponse",
-    "PortfolioComposition",
-    "PortfolioValue",
-    "PortfolioSummary",
-    "AssetBreakdown",
-    "AssetBreakdownReport",
-    "TransactionSummary",
-    "TransactionReportResponse",
-    "TaxGainLoss",
-    "TaxReportResponse",
-    "HealthCheck",
-    "ErrorResponse",
+    # Schemas
+    "WalletSchema",
+    "TransactionSchema",
+    "BalanceSchema",
+    "PortfolioSummarySchema",
+    "TaxReportSchema",
+    "ErrorSchema",
     # Dependencies
-    "get_config",
-    "get_database",
+    "get_db",
     "get_portfolio_service",
     "get_tax_calculator",
     "get_report_generator",
-    "validate_api_key",
-    "validate_wallet_id",
-    "validate_address",
-    "validate_token_symbol",
-    "get_pagination_params",
-    "get_date_range",
     # Routes
     "router",
+    "exchanges_router",
+    "auth_router",
+    "price_mappings_router",
 ]

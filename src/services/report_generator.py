@@ -8,7 +8,8 @@ Report generation service for portfolio and tax reports.
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from src.utils.time import now_utc
 from typing import List, Dict, Any, Optional
 import logging
 import json
@@ -94,7 +95,7 @@ class ReportGenerator:
                 
                 return {
                     "report_type": "portfolio_summary",
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": now_utc().isoformat(),
                     "total_value_usd": str(total_value),
                     "summary": {
                         "wallets_count": total_wallets,
@@ -166,7 +167,7 @@ class ReportGenerator:
                 
                 return {
                     "report_type": "asset_breakdown",
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": now_utc().isoformat(),
                     "total_value_usd": str(total_usd),
                     "assets": sorted(
                         assets.items(),
@@ -224,7 +225,7 @@ class ReportGenerator:
                 
                 return {
                     "report_type": "transaction_activity",
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": now_utc().isoformat(),
                     "summary": {
                         "total_transactions": len(transactions),
                         "by_type": type_counts,
@@ -310,7 +311,7 @@ class ReportGenerator:
                 
                 return {
                     "report_type": "tax_calculation",
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": now_utc().isoformat(),
                     "wallet_id": wallet_id,
                     "year": year,
                     "summary": {
@@ -352,7 +353,7 @@ class ReportGenerator:
             
             return {
                 "report_type": "comprehensive",
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "sections": {
                     "portfolio_summary": portfolio,
                     "asset_breakdown": breakdown,

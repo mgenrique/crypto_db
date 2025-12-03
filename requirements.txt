@@ -1,0 +1,21 @@
+# pip install -r requirements.txt
+# Minimal runtime dependencies detected from the codebase
+fastapi
+uvicorn[standard]
+pydantic
+SQLAlchemy
+alembic
+python-dotenv
+PyJWT
+passlib
+PyYAML
+aiohttp
+web3
+typing-extensions
+cryptography
+httpx
+ccxt
+
+# Notes:
+# - If you plan to use PostgreSQL, add `psycopg2-binary` (or `psycopg2`).
+# - If you rely on specific versions, pin them (e.g. `SQLAlchemy==1.4.49`).

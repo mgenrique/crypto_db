@@ -67,12 +67,11 @@ class ConfigLoader:
         Raises:
             FileNotFoundError: Si .env no existe
         """
+        # Make loading .env optional — configuration should primarily come from YAML.
         if not self.env_path.exists():
-            raise FileNotFoundError(
-                f"❌ .env file not found at {self.env_path}\n"
-                f"Copy .env.example to .env and fill with your values"
-            )
-        
+            logger.debug(f"⚠️  .env file not found at {self.env_path} — continuing using YAML only")
+            return
+
         load_dotenv(self.env_path)
         logger.debug(f"📄 Loaded environment variables from {self.env_path}")
     
@@ -115,12 +114,26 @@ class ConfigLoader:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
                 
-                # Interpolar variables de entorno ${VAR}
-                for key, value in os.environ.items():
-                    placeholder = f"${{{key}}}"
-                    if placeholder in content:
-                        content = content.replace(placeholder, str(value))
-                        logger.debug(f"  Interpolated ${{{key}}} in {file_path}")
+                # Interpolar variables de entorno ${VAR} y ${VAR:-default}
+                # Soporta sintaxis con valor por defecto: ${VAR:-default}
+                import re
+
+                pattern = re.compile(r"\$\{([A-Z0-9_]+)(:-([^}]*))?\}")
+
+                def _replace(match: re.Match) -> str:
+                    var = match.group(1)
+                    default_group = match.group(3)
+                    if var in os.environ:
+                        return os.environ.get(var, "")
+                    if default_group is not None:
+                        return default_group
+                    # No env var and no default — replace with empty string
+                    return ""
+
+                new_content = pattern.sub(lambda m: _replace(m), content)
+                if new_content != content:
+                    logger.debug(f"  Performed interpolation in {file_path}")
+                content = new_content
                 
                 # Parsear YAML
                 data = yaml.safe_load(content)
@@ -251,6 +264,16 @@ class ConfigLoader:
             Diccionario con config de portfolio
         """
         return self.config.get("portfolio", {})
+
+    def get_fiat_currency(self) -> str:
+        """
+        Obtiene la moneda FIAT configurada para reportes/valoraciones.
+
+        Devuelve un string ISO 4217 (e.g., 'EUR', 'USD'). Por defecto 'EUR'.
+        """
+        pf = self.get_portfolio_config() or {}
+        fiat = pf.get("fiat_currency") or os.getenv("FIAT_CURRENCY") or "EUR"
+        return str(fiat).upper()
     
     def get_features_config(self) -> Dict[str, Any]:
         """
@@ -260,6 +283,46 @@ class ConfigLoader:
             Diccionario con flags de features
         """
         return self.config.get("features", {})
+
+    def get_connectors_config(self) -> Dict[str, Any]:
+        """
+        Obtiene la configuración de `connectors`.
+
+        Returns:
+            Diccionario con la configuración de conectores (keys como alchemy_api_key,
+            infura_project_id, background_sync, etc.).
+        """
+        return self.config.get("connectors", {})
+
+    def get_connectors_background_sync(self) -> Dict[str, Any]:
+        """
+        Convenience accessor for `connectors.background_sync` settings.
+
+        Returns a dict with typed values and sensible defaults:
+          - enabled: bool (default True)
+          - interval_seconds: int (default 300)
+
+        Example:
+            cfg = ConfigLoader()
+            bg = cfg.get_connectors_background_sync()
+            if bg['enabled']:
+                interval = bg['interval_seconds']
+        """
+        conn = self.get_connectors_config() or {}
+        bg = conn.get("background_sync", {}) if isinstance(conn, dict) else {}
+
+        enabled = True
+        interval = 300
+
+        try:
+            if isinstance(bg, dict):
+                enabled = bool(bg.get("enabled", enabled))
+                interval = int(bg.get("interval_seconds", interval))
+        except Exception:
+            # fallback to defaults on parse errors
+            pass
+
+        return {"enabled": enabled, "interval_seconds": interval}
     
     # ========================================================================
     # Network Accessors
@@ -482,7 +545,37 @@ class ConfigLoader:
         Returns:
             Valor de la variable
         """
+        # Prefer YAML configuration over environment variables for a single source of truth.
+        # Search common config sections first, then fall back to environment.
+        # Top-level keys can be provided in config.yaml under `security`, `connectors`, or `integrations`.
+        # 1) security
+        sec = self.config.get("security", {})
+        if key in sec:
+            return str(sec.get(key))
+
+        # 2) connectors
+        conn = self.config.get("connectors", {})
+        if key in conn:
+            return str(conn.get(key))
+
+        # 3) integrations
+        integ = self.config.get("integrations", {})
+        if key in integ:
+            return str(integ.get(key))
+
+        # 4) database
+        db = self.config.get("database", {})
+        if key in db:
+            return str(db.get(key))
+
+        # fallback to environment for backward compatibility
         return os.getenv(key, default)
+
+    def get_security_config(self) -> Dict[str, Any]:
+        """
+        Return the `security` section from the YAML configuration.
+        """
+        return self.config.get("security", {})
     
     def __repr__(self) -> str:
         """Representación en string."""

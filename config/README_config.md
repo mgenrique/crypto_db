@@ -1,373 +1,145 @@
-# Config - Configuración de Crypto Portfolio Tracker v3
+# Configuration Guide — Crypto Portfolio Tracker
 
-## 📋 Archivos en esta carpeta
+This document explains the most important configuration options in `config/config.yaml` and how to set them for local development and production.
 
-### 1. `.env.example` (Versionar ✅)
-Plantilla de variables de entorno.
+## Database
 
-**Uso:**
-```bash
-cp .env.example .env
-vim .env  # Rellenar con tus valores
-```
+`config/config.yaml` (database section)
 
-### 2. `config.yaml` (Versionar ✅)
-Configuración principal de la aplicación.
+- `type`: `sqlite` (default for local dev) or `postgresql` for production.
+- `path`: For SQLite, e.g. `./portfolio.db`.
+- `url` / `connection_string`: Use for full DB URLs when not using `sqlite`.
 
-**Secciones:**
-- `database:` - Configuración de base de datos
-- `logging:` - Configuración de logs
-- `api:` - Configuración de FastAPI
-- `exchanges:` - Configuración de exchanges
-- `tax:` - Configuración de impuestos
-- `price_fetcher:` - Configuración de obtención de precios
-- `portfolio:` - Configuración de portfolio
-- `features:` - Flags de features
-
-### 3. `networks.yaml` (Versionar ✅)
-Configuración de redes blockchain.
-
-**Secciones:**
-- `networks:` - Redes blockchain (Ethereum, Arbitrum, Base)
-- `defi_protocols:` - Protocolos DeFi (Uniswap, Aave)
-- `tokens:` - Tokens conocidos (ETH, USDC, DAI, etc)
-
-### 4. `src/utils/config_loader.py` (Versionar ✅)
-Clase Python que carga y valida la configuración.
-
-**Responsabilidades:**
-- Lee variables de entorno (.env)
-- Lee archivos YAML
-- Interpola variables (${VAR})
-- Valida configuración
-- Proporciona accessors seguros
-
----
-
-## 🚀 Setup Rápido
-
-### Paso 1: Copiar .env.example
-
-```bash
-cp config/.env.example .env
-```
-
-### Paso 2: Configurar variables
-
-```bash
-vim .env
-```
-
-Rellena como mínimo:
-```ini
-DATABASE_URL=sqlite:///./portfolio.db
-ETHEREUM_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
-ARBITRUM_RPC_URL=https://arb-mainnet.g.alchemy.com/v2/YOUR_KEY
-BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_KEY
-BINANCE_API_KEY=your_key
-LOG_LEVEL=INFO
-```
-
-### Paso 3: Verificar instalación
-
-```bash
-python -c "from src.utils import ConfigLoader; c = ConfigLoader(); print('✅ Config loaded')"
-```
-
----
-
-## 📖 Uso en código
-
-### En dependencies.py
-
-```python
-from src.utils import ConfigLoader
-
-@lru_cache()
-def get_config() -> ConfigLoader:
-    return ConfigLoader()
-
-def get_database(config = Depends(get_config)):
-    db_config = config.get_database_config()
-    return DatabaseManager(db_path=db_config['path'])
-```
-
-### En services
-
-```python
-from src.utils import ConfigLoader
-
-class PortfolioService:
-    def __init__(self, db):
-        self.db = db
-        self.config = ConfigLoader()
-        
-        # Acceder a redes
-        ethereum = self.config.get_network("ethereum")
-        rpc_url = self.config.get_network_rpc("ethereum")
-        
-        # Acceder a tokens
-        usdc = self.config.get_token("USDC")
-        usdc_addr = self.config.get_token_address("USDC", "ethereum")
-        
-        # Acceder a exchanges
-        binance = self.config.get_exchange_config("binance")
-```
-
----
-
-## 🔐 Seguridad
-
-### .gitignore
-
-Asegúrate de que `.env` esté en `.gitignore`:
-
-```
-# Environment
-.env
-.env.local
-.env.*.local
-```
-
-**NUNCA** commits `.env` - contiene secretos.
-
-Sí versionar:
-- `.env.example` (plantilla)
-- `config.yaml`
-- `networks.yaml`
-- `src/utils/config_loader.py`
-
----
-
-## 📊 Estructura de datos
-
-### config.yaml Structure
+Example (SQLite):
 
 ```yaml
 database:
-  type: sqlite|postgresql
+  type: sqlite
   path: ./portfolio.db
   timeout: 5
+  echo: false
+```
 
-logging:
-  level: INFO|DEBUG|WARNING|ERROR
-  file: ./logs/app.log
+Example (Postgres):
 
-api:
-  version: 3.0.0
-  cors:
-    allow_origins: [...]
-    allow_credentials: true
+```yaml
+database:
+  type: postgresql
+  url: postgresql://dbuser:***@dbhost:5432/crypto_db
+  pool_size: 10
+  max_overflow: 5
+  echo: false
+```
 
+> Notes:
+> - The app no longer expects `DATABASE_URL` in `.env` as the single source of truth; prefer YAML for DB configuration.
+> - If you use Postgres in production, add the connection URL to YAML (or a secrets manager) and avoid committing secrets to git.
+
+
+## Security / Secret Management
+
+`security.secret_key` is read from `config/config.yaml` but can be overridden by the `.env` `SECRET_KEY` environment variable.
+
+For encryption of per-user API keys we currently derive a Fernet key from `secret_key`. For production you should provide a dedicated `ENCRYPTION_KEY` in your secrets manager and update `src/utils/crypto.py` to use it.
+
+Example:
+
+```yaml
+security:
+  secret_key: ${SECRET_KEY}
+  access_token_expire_minutes: 30
+  refresh_token_expire_days: 7
+```
+
+
+## Exchanges / Connectors
+
+The `exchanges` section controls connector-level defaults (endpoints, rate limits) while `connectors` contains provider-level and sync controls.
+
+Example `exchanges`:
+
+```yaml
 exchanges:
   binance:
     enabled: true
     base_url: https://api.binance.com
-
-tax:
-  default_method: FIFO|LIFO|AVERAGE_COST
-  jurisdictions:
-    ES: {name: España, tax_rate: 0.27}
-
-price_fetcher:
-  primary: coingecko
-  fallback: [coinmarketcap, binance]
-
-features:
-  portfolio_management: true
-  tax_calculation: true
+    ws_url: wss://stream.binance.com:9443
+    rate_limit: 1200
 ```
 
-### networks.yaml Structure
+Example `connectors` (provider keys and background sync):
 
 ```yaml
-networks:
-  ethereum:
-    id: 1
-    name: Ethereum Mainnet
-    rpc_url: ${ETHEREUM_RPC_URL}  # Interpola desde .env
-    explorer: https://etherscan.io
-    contracts:
-      usdc: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+connectors:
+  alchemy_api_key: ${ALCHEMY_API_KEY}
+  infura_project_id: ${INFURA_PROJECT_ID}
 
-defi_protocols:
-  uniswap_v2:
-    name: Uniswap V2
-    factory: 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f
-
-tokens:
-  USDC:
-    symbol: USDC
-    decimals: 6
-    networks:
-      ethereum: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+  background_sync:
+    enabled: true
+    interval_seconds: 300
 ```
 
----
+- `exchanges.<name>.enabled`: If false the app will avoid instantiating that exchange's connector.
+- `connectors.background_sync.enabled`: When `true` the app will start the background sync loop at startup (FastAPI startup event).
+- `connectors.background_sync.interval_seconds`: Poll interval in seconds (default: `300`).
 
-## 🔍 API de ConfigLoader
 
-```python
-# Database
-config.get_database_config() -> Dict
+## Per-user API keys
 
-# Logging
-config.get_logging_config() -> Dict
+The application supports storing per-user exchange API keys via the UI/API. These keys are encrypted at rest using a Fernet key derived from `security.secret_key`.
 
-# API
-config.get_api_config() -> Dict
+To add an exchange account for a user, use the API endpoints (see API docs) or insert into the `exchange_accounts` table with `api_key_encrypted` and `api_secret_encrypted` set via `src.utils.crypto.encrypt_value()`.
 
-# Exchanges
-config.get_exchange_config("binance") -> Dict
-config.get_exchanges_config() -> Dict
 
-# Tax
-config.get_tax_config() -> Dict
+## Background Sync
 
-# Networks
-config.get_network("ethereum") -> Dict
-config.get_available_networks() -> List[str]
-config.get_network_rpc("ethereum") -> str
-config.get_network_explorer("ethereum") -> str
+- Controlled by `connectors.background_sync`.
+- The background sync iterates active `exchange_accounts`, decrypts credentials, initializes the connector (e.g., Binance), fetches balances/trades/deposits/withdrawals and persists them to DB using `ExchangeService`.
+- The migration created for indexes/constraints skips altering existing SQLite tables to add UNIQUE constraints. The app enforces deduplication in `ExchangeService`.
 
-# DeFi Protocols
-config.get_defi_protocol("uniswap_v2") -> Dict
+Considerations:
+- For production, run background sync on a dedicated worker (not in the API process) to avoid long-running tasks tying up the web server.
+- Add rate-limits, exponential backoff, and circuit-breakers for robust behavior under API errors.
 
-# Tokens
-config.get_token("USDC") -> Dict
-config.get_token_address("USDC", "ethereum") -> str
 
-# Features
-config.is_feature_enabled("tax_calculation") -> bool
+## Running locally
 
-# Environment
-config.get_env("MY_VAR", "default") -> str
-```
+1. Copy `.env.example` to `.env` and set `SECRET_KEY` and any provider keys you want to test.
 
----
+2. Start the app:
 
-## 🎯 Ejemplos prácticos
-
-### Obtener RPC para transacciones
-
-```python
-from src.utils import ConfigLoader
-
-config = ConfigLoader()
-rpc_url = config.get_network_rpc("ethereum")
-
-from web3 import Web3
-w3 = Web3(Web3.HTTPProvider(rpc_url))
-```
-
-### Obtener dirección de contrato
-
-```python
-config = ConfigLoader()
-usdc_ethereum = config.get_token_address("USDC", "ethereum")
-usdc_arbitrum = config.get_token_address("USDC", "arbitrum")
-```
-
-### Verificar configuración de tax
-
-```python
-config = ConfigLoader()
-tax_config = config.get_tax_config()
-default_method = tax_config["default_method"]  # "FIFO"
-```
-
-### Iterar sobre redes disponibles
-
-```python
-config = ConfigLoader()
-for network_name in config.get_available_networks():
-    network = config.get_network(network_name)
-    print(f"{network_name}: {network['explorer']}")
-```
-
----
-
-## ⚠️ Errores comunes
-
-### Error: ".env file not found"
-
-```
-❌ .env file not found at .env
-Copy .env.example to .env and fill with your values
-```
-
-**Solución:**
 ```bash
-cp config/.env.example .env
-vim .env
+# development
+uvicorn main:app --reload
 ```
 
-### Error: "Unknown network: polygon"
+3. To run migrations (preferred):
 
+```bash
+alembic upgrade head
 ```
-❌ Unknown network: polygon
-Available: ['ethereum', 'arbitrum', 'base']
+
+4. To run the CCXT/Binance integration test (requires keys):
+
+```bash
+# Ensure BINANCE_API_KEY and BINANCE_API_SECRET are in .env or add per-user ExchangeAccount
+python -m pytest tests/test_binance_integration.py -q
 ```
 
-**Solución:**
-- Usar nombre correcto: `ethereum`, `arbitrum`, `base`
-- O añadir la red en `config/networks.yaml`
 
-### Error: "No RPC URL configured for ethereum"
+## Troubleshooting
 
-**Solución:**
-- Verificar que `ETHEREUM_RPC_URL` está en `.env`
-- Y que está interpolada en `config/networks.yaml`
+- If tests that contact external services are skipped, check the environment variables or create a per-user `ExchangeAccount` in the DB with encrypted keys.
+- If SQLite needs DB-level UNIQUE enforcement, see the `alembic/versions/0002_add_exchange_constraints.py` migration; for SQLite you may need to recreate tables to apply new UNIQUE constraints.
+
+
+## Further Reading
+
+- `config/config.yaml` — Primary runtime configuration
+- `src/utils/config_loader.py` — Programmatic access to config
+- `src/utils/crypto.py` — Encryption helpers
+- `src/services/exchange_service.py` — Persistence/dedupe logic for exchange data
 
 ---
 
-## 🔄 Interpolación de variables
-
-En `networks.yaml`:
-
-```yaml
-ethereum:
-  rpc_url: ${ETHEREUM_RPC_URL}  # Se reemplaza con valor de .env
-  name: Ethereum Mainnet
-```
-
-El `ConfigLoader` automáticamente:
-1. Lee `ETHEREUM_RPC_URL` de `.env`
-2. Reemplaza `${ETHEREUM_RPC_URL}` en el YAML
-3. Retorna el valor interpolado
-
----
-
-## 📝 Extensión: Agregar nueva red
-
-### 1. Añadir en `config/networks.yaml`
-
-```yaml
-networks:
-  polygon:
-    id: 137
-    name: "Polygon"
-    rpc_url: ${POLYGON_RPC_URL}
-    explorer: "https://polygonscan.com"
-```
-
-### 2. Añadir en `.env`
-
-```
-POLYGON_RPC_URL=https://polygon-mainnet.g.alchemy.com/v2/YOUR_KEY
-```
-
-### 3. Usar en código
-
-```python
-config = ConfigLoader()
-polygon = config.get_network("polygon")
-```
-
----
-
-## 📚 Referencias
-
-- YAML syntax: https://en.wikipedia.org/wiki/YAML
-- Python-dotenv: https://github.com/theskumar/python-dotenv
-- PyYAML: https://pyyaml.org/
+If you'd like, I can also add an example `docker-compose` service for running a worker-only background sync separated from the API process.

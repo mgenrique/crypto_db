@@ -9,7 +9,8 @@ Handles wallets, transactions, and balance tracking.
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
+from src.utils.time import now_utc
 from typing import List, Optional, Dict, Any
 import logging
 
@@ -341,7 +342,7 @@ class PortfolioService:
                     token_symbol=token_symbol,
                     balance=balance,
                     balance_usd=balance_usd,
-                    timestamp=datetime.utcnow()
+                    timestamp=now_utc()
                 )
                 session.add(balance_record)
                 session.flush()
@@ -402,7 +403,7 @@ class PortfolioService:
                     "wallet_count": wallet_count,
                     "transaction_count": transaction_count,
                     "assets": assets,
-                    "last_updated": datetime.utcnow().isoformat()
+                    "last_updated": now_utc().isoformat()
                 }
         except Exception as e:
             logger.error(f"❌ Error calculating portfolio value: {str(e)}")

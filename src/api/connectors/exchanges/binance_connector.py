@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Any
 from decimal import Decimal
 from datetime import datetime, timedelta
 import time
+from src.services.exchange_service import ExchangeService
 
 try:
     from binance.client import Client as BinanceClient
@@ -55,6 +56,11 @@ class BinanceConnector:
             self.client = BinanceClient(api_key=api_key, api_secret=api_secret)
         
         self.logger = logging.getLogger(f"connector.binance.{api_key[:8]}")
+        # persistence service for optional automatic persistence
+        try:
+            self._exchange_service = ExchangeService()
+        except Exception:
+            self._exchange_service = None
     
     async def validate_connection(self) -> bool:
         """Validate Binance connection"""
@@ -69,7 +75,7 @@ class BinanceConnector:
             self.logger.error(f"❌ Connection error: {str(e)}")
             return False
     
-    async def get_balance(self) -> Dict[str, Dict[str, Any]]:
+    async def get_balance(self, persist_account_id: Optional[int] = None) -> Dict[str, Dict[str, Any]]:
         """
         Get account balances
         
@@ -97,6 +103,13 @@ class BinanceConnector:
                     }
             
             self.logger.info(f"✅ Balance fetched: {len(balances)} assets")
+            # optionally persist
+            if persist_account_id and self._exchange_service:
+                try:
+                    self._exchange_service.persist_balances(persist_account_id, balances)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist balances: {e}")
+
             return balances
         except BinanceAPIException as e:
             self.logger.error(f"❌ Error fetching balance: {str(e)}")
@@ -177,7 +190,7 @@ class BinanceConnector:
             self.logger.error(f"❌ Error getting deposit address: {str(e)}")
             return None
     
-    async def get_withdraw_history(self, coin: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_withdraw_history(self, coin: Optional[str] = None, limit: int = 100, persist_account_id: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get withdrawal history"""
         try:
             params = {"limit": limit}
@@ -186,7 +199,7 @@ class BinanceConnector:
             
             history = self.client.get_withdraw_history(**params)
             
-            return [
+            result = [
                 {
                     "id": tx['id'],
                     "coin": tx['coin'],
@@ -199,11 +212,20 @@ class BinanceConnector:
                 }
                 for tx in history
             ]
+
+            if persist_account_id and self._exchange_service:
+                try:
+                    # persist as list of withdrawals
+                    self._exchange_service.persist_withdrawals(persist_account_id, result)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist withdrawals: {e}")
+
+            return result
         except Exception as e:
             self.logger.error(f"❌ Error fetching withdraw history: {str(e)}")
             return []
     
-    async def get_deposit_history(self, coin: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_deposit_history(self, coin: Optional[str] = None, limit: int = 100, persist_account_id: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get deposit history"""
         try:
             params = {"limit": limit}
@@ -212,7 +234,7 @@ class BinanceConnector:
             
             history = self.client.get_deposit_history(**params)
             
-            return [
+            result = [
                 {
                     "id": tx['id'],
                     "coin": tx['coin'],
@@ -224,17 +246,26 @@ class BinanceConnector:
                     "network": tx.get('network')
                 }
                 for tx in history
+
             ]
+
+            if persist_account_id and self._exchange_service:
+                try:
+                    self._exchange_service.persist_deposits(persist_account_id, result)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist deposits: {e}")
+
+            return result
         except Exception as e:
             self.logger.error(f"❌ Error fetching deposit history: {str(e)}")
             return []
     
-    async def get_trades(self, symbol: str, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_trades(self, symbol: str, limit: int = 100, persist_account_id: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get trades for symbol"""
         try:
             trades = self.client.get_my_trades(symbol=symbol, limit=limit)
             
-            return [
+            result = [
                 {
                     "id": t['id'],
                     "symbol": t['symbol'],
@@ -247,7 +278,16 @@ class BinanceConnector:
                     "timestamp": datetime.fromtimestamp(t['time'] / 1000).isoformat()
                 }
                 for t in trades
+
             ]
+
+            if persist_account_id and self._exchange_service:
+                try:
+                    self._exchange_service.persist_trades(persist_account_id, result)
+                except Exception as e:
+                    self.logger.warning(f"Could not persist trades: {e}")
+
+            return result
         except Exception as e:
             self.logger.error(f"❌ Error fetching trades: {str(e)}")
             return []

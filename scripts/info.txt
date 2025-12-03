@@ -1,0 +1,8 @@
+Recrear DB manualmente:
+E:/VSC_CryptoDB2/venv/Scripts/python.exe scripts/reset_db.py
+
+Poblar mappings builtin:
+E:/VSC_CryptoDB2/venv/Scripts/python.exe scripts/seed_price_mappings.py
+
+Ejecutar tests:
+E:/VSC_CryptoDB2/venv/Scripts/python.exe -m pytest -q

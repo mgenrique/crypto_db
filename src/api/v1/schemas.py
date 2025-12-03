@@ -5,7 +5,7 @@ Pydantic Schemas for API
 Data validation and serialization schemas.
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
@@ -22,15 +22,15 @@ class WalletSchema(BaseModel):
     network: str = Field(..., description="ethereum, arbitrum, base, polygon, etc")
     label: Optional[str] = Field(None, max_length=255, description="User-friendly label")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "address": "0x742d35Cc6634C0532925a3b844Bc0e8e15b51d93",
-                "wallet_type": "hot",
-                "network": "ethereum",
-                "label": "My Ethereum Wallet"
-            }
+    # Pydantic v2 configuration
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "address": "0x742d35Cc6634C0532925a3b844Bc0e8e15b51d93",
+            "wallet_type": "hot",
+            "network": "ethereum",
+            "label": "My Ethereum Wallet"
         }
+    })
 
 
 class TransactionSchema(BaseModel):
@@ -47,20 +47,19 @@ class TransactionSchema(BaseModel):
     price_usd_out: Optional[Decimal] = Field(None, description="Historical price of output token in USD")
     notes: Optional[str] = Field(None, description="Additional notes")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "tx_hash": "0xabc123...",
-                "tx_type": "buy",
-                "token_in": "USDC",
-                "token_out": "ETH",
-                "amount_in": "1000",
-                "amount_out": "0.5",
-                "fee": "10",
-                "price_usd_in": "1.0",
-                "price_usd_out": "2000.0"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "tx_hash": "0xabc123...",
+            "tx_type": "buy",
+            "token_in": "USDC",
+            "token_out": "ETH",
+            "amount_in": "1000",
+            "amount_out": "0.5",
+            "fee": "10",
+            "price_usd_in": "1.0",
+            "price_usd_out": "2000.0"
         }
+    })
 
 
 class BalanceSchema(BaseModel):
@@ -69,14 +68,13 @@ class BalanceSchema(BaseModel):
     balance: Decimal = Field(..., ge=0, description="Token balance")
     balance_usd: Optional[Decimal] = Field(None, ge=0, description="USD equivalent")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "token_symbol": "ETH",
-                "balance": "10.5",
-                "balance_usd": "21000"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "token_symbol": "ETH",
+            "balance": "10.5",
+            "balance_usd": "21000"
         }
+    })
 
 
 # ============================================================================
@@ -117,10 +115,9 @@ class ErrorSchema(BaseModel):
     detail: str = Field(..., description="Error message")
     status_code: int = Field(..., description="HTTP status code")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "detail": "Wallet not found",
-                "status_code": 404
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "detail": "Wallet not found",
+            "status_code": 404
         }
+    })

@@ -227,8 +227,8 @@ class AuthService:
                     return None
                 
                 # Update last_used
-                from datetime import datetime
-                api_key.last_used = datetime.utcnow()
+                from src.utils.time import now_utc
+                api_key.last_used = now_utc()
                 session.flush()
                 
                 logger.info(f"✅ API key verified for user: {api_key.user_id}")

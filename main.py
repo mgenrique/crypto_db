@@ -36,43 +36,54 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZIPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.utils import setup_root_logger, LoggerSetup
-from src.api.v1 import router
+from src.api.v1 import router, exchanges_router, auth_router, price_mappings_router
+from src.utils.config_loader import ConfigLoader
+from src.api.connectors.manager import ConnectorManager
 
 
 # ============================================================================
 # Logging Setup
 # ============================================================================
 
-def setup_logging():
-    """Configura logging centralizado."""
+def setup_logging(cfg: ConfigLoader):
+    """Configura logging centralizado usando `config/config.yaml`."""
     # Crear directorio de logs si no existe
     logs_dir = Path("./logs")
     logs_dir.mkdir(exist_ok=True)
-    
+
+    log_cfg = cfg.get_logging_config()
+    level = log_cfg.get("level", "INFO")
+    log_file = log_cfg.get("file", "./logs/app.log")
+    max_bytes = int(log_cfg.get("max_bytes", 10485760))
+    backup_count = int(log_cfg.get("backup_count", 5))
+
     # Setup del logger raíz
     setup_root_logger(
-        level="INFO",
-        log_file="./logs/app.log",
-        max_bytes=10485760,  # 10MB
-        backup_count=5,
+        level=level,
+        log_file=log_file,
+        max_bytes=max_bytes,
+        backup_count=backup_count,
     )
-    
+
     logger = logging.getLogger(__name__)
     logger.info("=" * 80)
     logger.info("Crypto Portfolio Tracker v3.0.0 - Starting up")
+    logger.info("Using config.app.env=%s", cfg.config.get("app", {}).get("env", "development"))
     logger.info("=" * 80)
-    
+
     return logger
 
 
-logger = setup_logging()
+# Initialize global configuration and logger
+cfg = ConfigLoader()
+logger = setup_logging(cfg)
 
 
 # ============================================================================
@@ -98,12 +109,42 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Application starting up...")
     logger.info("📦 Database: Connected")
     logger.info("🔧 Services: Initialized")
+
+    # Initialize and start connector manager if configured
+    try:
+        app.state.connector_manager = ConnectorManager()
+        try:
+            conn_cfg = cfg.config.get("connectors", {})
+            bg_cfg = conn_cfg.get("background_sync", {}) if conn_cfg else {}
+            enabled = bool(bg_cfg.get("enabled", True))
+            interval = int(bg_cfg.get("interval_seconds", 300))
+        except Exception:
+            enabled = True
+            interval = 300
+
+        if enabled:
+            app.state.connector_manager.start_background_sync(interval_seconds=interval)
+            logger.info(f"Connector background sync started (interval={interval}s)")
+        else:
+            logger.info("Connector background sync is disabled by configuration")
+    except Exception as e:
+        logger.warning(f"Could not start connector background sync: {e}")
+
     logger.info("✅ Application ready to serve requests")
-    
+
     yield  # Aplicación ejecutándose
-    
+
     # Shutdown
     logger.info("🛑 Application shutting down...")
+    # Stop connector background sync if running
+    try:
+        cm = getattr(app.state, 'connector_manager', None)
+        if cm:
+            cm.stop_background_sync()
+            logger.info("Connector background sync stopped")
+    except Exception as e:
+        logger.warning(f"Error stopping connector background sync: {e}")
+
     logger.info("💾 Closing database connections...")
     logger.info("🧹 Cleaning up resources...")
     logger.info("👋 Goodbye!")
@@ -149,7 +190,7 @@ logger.info("✅ CORS middleware configured")
 
 # Gzip compression
 app.add_middleware(
-    GZIPMiddleware,
+    GZipMiddleware,
     minimum_size=1000,
 )
 
@@ -160,6 +201,7 @@ app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=[
         "localhost",
+        "testserver",
         "127.0.0.1",
         "*.localhost",
         "*.example.com",
@@ -315,6 +357,9 @@ logger.info("✅ Custom middleware configured")
 # ============================================================================
 
 app.include_router(router)
+app.include_router(exchanges_router)
+app.include_router(auth_router)
+app.include_router(price_mappings_router)
 
 logger.info("✅ API v1 routes registered")
 
@@ -395,7 +440,7 @@ async def app_info():
         "author": "Crypto Portfolio Tracker Team",
         "license": "MIT",
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
-        "environment": "development",  # Change to "production" in deployment
+        "environment": cfg.config.get("app", {}).get("env", "development"),
         "features": [
             "Portfolio management",
             "Multi-wallet support",
@@ -412,20 +457,8 @@ async def app_info():
 logger.info("✅ Root and health endpoints configured")
 
 
-# ============================================================================
-# Startup Event (Alternativo a lifespan)
-# ============================================================================
-
-@app.on_event("startup")
-async def on_startup():
-    """Evento de startup."""
-    logger.info("📡 Startup event triggered")
-
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    """Evento de shutdown."""
-    logger.info("📡 Shutdown event triggered")
+# Removed deprecated @app.on_event handlers; startup/shutdown
+# behavior is handled in the `lifespan` asynccontextmanager above.
 
 
 # ============================================================================
