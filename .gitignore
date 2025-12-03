@@ -1,0 +1,9 @@
+# No subir el entorno virtual
+venv/
+
+# No subir variables de entorno
+.env
+
+# Otros archivos comunes a ignorar
+__pycache__/
+*.pyc

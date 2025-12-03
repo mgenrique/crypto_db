@@ -1,0 +1,1 @@
+# Actualizar con las últimas versiones estables usando pip freeze > requirements.txt
