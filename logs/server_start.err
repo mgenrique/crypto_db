@@ -292,4 +292,159 @@ Could not persist deposits: ExchangeAccount 5 not found
 \u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
 \u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
 \u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
-\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current 
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching balance: Kraken error: {'error': ['EAPI:Invalid nonce']}
+Failed fetching balances for Kraken acct 6: Kraken error: {'error': ['EAPI:Invalid nonce']}
+\u274c Error fetching trades: Kraken error: {'error': [], 'result': {'count': 0, 'trades': {}}}
+\u274c Error fetching transactions: Kraken error: {'error': ['EGeneral:Invalid arguments']}
+WARNING:  WatchFiles detected changes in 'tests\test_background_sync_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7660]
+INFO:     Started server process [11712]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+\u274c Error fetching trades: APIError(code=-2014): API-key format invalid.
+Could not init Coinbase connector for account 2: coinbase library not installed. pip install coinbase
+\u274c Error fetching balance: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+Failed fetching balances for Kraken acct 3: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+\u274c Error fetching trades: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+\u274c Error fetching transactions: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+Session error: ExchangeAccount 4 not found
+Error persisting balances: ExchangeAccount 4 not found
+Could not persist balances: ExchangeAccount 4 not found
+Session error: ExchangeAccount 4 not found
+Error persisting deposits: ExchangeAccount 4 not found
+Could not persist deposits: ExchangeAccount 4 not found
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+Session error: ExchangeAccount 5 not found
+Error persisting balances: ExchangeAccount 5 not found
+Could not persist balances: ExchangeAccount 5 not found
+Session error: ExchangeAccount 5 not found
+Error persisting deposits: ExchangeAccount 5 not found
+Could not persist deposits: ExchangeAccount 5 not found
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching balance: Kraken error: {'error': [], 'result': {'XETH': '0.0155546228', 'XXBT': '0.0012139800', 'ZEUR': '0.0000'}}
+Failed fetching balances for Kraken acct 6: Kraken error: {'error': [], 'result': {'XETH': '0.0155546228', 'XXBT': '0.0012139800', 'ZEUR': '0.0000'}}
+\u274c Error fetching trades: Kraken error: {'error': [], 'result': {'count': 0, 'trades': {}}}
+\u274c Error fetching transactions: Kraken error: {'error': ['EGeneral:Invalid arguments']}
+WARNING:  WatchFiles detected changes in 'tests\test_background_sync_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [17308]
+INFO:     Started server process [15768]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+found
+Error persisting balances: ExchangeAccount 4 not found
+Could not persist balances: ExchangeAccount 4 not found
+Session error: ExchangeAccount 4 not found
+Error persisting deposits: ExchangeAccount 4 not found
+Could not persist deposits: ExchangeAccount 4 not found
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+Session error: ExchangeAccount 5 not found
+Error persisting balances: ExchangeAccount 5 not found
+Could not persist balances: ExchangeAccount 5 not found
+Session error: ExchangeAccount 5 not found
+Error persisting deposits: ExchangeAccount 5 not found
+Could not persist deposits: ExchangeAccount 5 not found
+\u274c Error fetching withdraw history: unsupported operand type(s) for /: 'str' and 'int'
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Too much request weight used; current limit is 6000 request weight per 1 MINUTE. Please use WebSocket Streams for live updates to avoid polling the API.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching trades: APIError(code=-1003): Way too much request weight used; IP banned until 1764783525975. Please use WebSocket Streams for live updates to avoid bans.
+\u274c Error fetching balance: Kraken error: {'error': [], 'result': {'XETH': '0.0155546228', 'XXBT': '0.0012139800', 'ZEUR': '0.0000'}}
+Failed fetching balances for Kraken acct 6: Kraken error: {'error': [], 'result': {'XETH': '0.0155546228', 'XXBT': '0.0012139800', 'ZEUR': '0.0000'}}
+\u274c Error fetching trades: Kraken error: {'error': [], 'result': {'count': 0, 'trades': {}}}
+\u274c Error fetching transactions: Kraken error: {'error': ['EGeneral:Invalid arguments']}
+WARNING:  WatchFiles detected changes in 'tests\test_background_sync_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [11188]
+INFO:     Started server process [1064]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

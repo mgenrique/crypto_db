@@ -7,3 +7,5 @@ venv/
 # Otros archivos comunes a ignorar
 __pycache__/
 *.pyc
+*.accdb
+*.db
